@@ -29,9 +29,10 @@ header {
 }
 
 .title {
-  position: fixed;
+  position: absolute;
+  display: flex;
   top: 3%;
-  left: 4%;
+  left: 43%;
   text-align: center;
   font-size: 3.5rem;
   font-weight: 300;
@@ -45,6 +46,8 @@ header {
   position: fixed;
   bottom: 0;
   width: 100%;
+  /* width: 0%;
+  opacity: 0; */
   padding: 3rem 5%;
   background-color: rgba(0, 0, 0, 0.204);
 }
@@ -79,6 +82,7 @@ header {
   color: #ffffff;
   margin-top: 20px;
   font-size: 1rem;
+  visibility: hidden;
 }
 
 .asteroid {
@@ -91,7 +95,7 @@ header {
  
 }
 
-.fas.fa-info-circle {
+.fa-info-circle {
   position: absolute;
   top: 30px;
   right: 30px;
