@@ -2,7 +2,7 @@
 
 Demo project.
 
-Live version at johnnyvishnevskiy.com
+Live version at https://johnnyvishnevskiy.com
 
 ## Built With
 
