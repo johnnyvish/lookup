@@ -8,19 +8,20 @@ import './style.css';
 
 const STAR_SPREAD = 1000;
 const STAR_COUNT = 30000;
+const STAR_CENTER = 200;
 const ASTEROID_START_POSITION = -50;
 const EARTH_POSITION = 400;
 const SUN_POSITION = 1000;
-const STAR_CENTER = 200;
 const TEXT_VISIBILITY_THRESHOLD = 30;
+const MAX_VELOCITY = 10;
+const DAMPING_FACTOR = 0.85;
 
 let scrollY = 0;
-let maxSpeed = 10;
-let dampingFactor = 0.85;
-let yearsGraphic = [];
 
 function createYears(scene) {
-  let loader = new FontLoader();
+
+  const years = [];
+  const loader = new FontLoader();
 
   loader.load('Bebas.json', function (font) {
     const yearCount = (2050 - 1940) / 10 + 1;
@@ -29,7 +30,7 @@ function createYears(scene) {
       let year = 1940 + i * 10;
       if (year == 2050) year = "END";
 
-      let textGeo = new TextGeometry(String(year), {
+      const textGeo = new TextGeometry(String(year), {
         font: font,
         size: 2,
         height: 0.1,
@@ -41,7 +42,7 @@ function createYears(scene) {
         bevelSegments: 5
       });
 
-      let textMaterial = new THREE.MeshPhongMaterial({
+      const textMaterial = new THREE.MeshPhongMaterial({
         color: 'orange',
         specular: 0xffffff,
         shininess: 200,
@@ -49,7 +50,7 @@ function createYears(scene) {
         opacity: 0
       });
 
-      let text = new THREE.Mesh(textGeo, textMaterial);
+      const text = new THREE.Mesh(textGeo, textMaterial);
       text.position.y = -1;
       text.position.x = 1.9;
       text.position.z = (ASTEROID_START_POSITION + i / (yearCount - 1) * (EARTH_POSITION - ASTEROID_START_POSITION) - 30);
@@ -57,13 +58,14 @@ function createYears(scene) {
       text.offset = 2;
       scene.add(text);
 
-      yearsGraphic.push(text);
+      years.push(text);
     }
   });
+  return years;
 }
 
-function updateYears(asteroid) {
-  yearsGraphic.forEach((element) => {
+function updateYears(asteroid, years) {
+  years.forEach((element) => {
     const distance = asteroid.position.distanceTo(element.position);
 
     if (distance < TEXT_VISIBILITY_THRESHOLD) {
@@ -135,11 +137,11 @@ function createAsteroid(scene, loader) {
 }
 
 function calculateMoveAmount() {
-  scrollY *= dampingFactor;
-  let moveAmount = scrollY / 1000;
+  scrollY *= DAMPING_FACTOR;
+  const moveAmount = scrollY / 1000;
 
-  if (Math.abs(moveAmount) > maxSpeed) {
-    moveAmount = Math.sign(moveAmount) * maxSpeed;
+  if (Math.abs(moveAmount) > MAX_VELOCITY) {
+    moveAmount = Math.sign(moveAmount) * MAX_VELOCITY;
   }
   
   return moveAmount;
@@ -148,7 +150,7 @@ function calculateMoveAmount() {
 function updatePosition(asteroid) {
   const moveAmount = calculateMoveAmount();
   updateAsteroidPosition(asteroid, moveAmount);
-  updateTimelinePosition(asteroid);
+  updateTimeline(asteroid);
 }
 
 function updateAsteroidPosition(asteroid, moveAmount) {
@@ -163,15 +165,38 @@ function updateAsteroidPosition(asteroid, moveAmount) {
   }
 }
 
-function updateTimelinePosition(asteroid) {
+function updateTimeline(asteroid) {
+
+  const timeline = document.querySelector('.timeline');
+  const timelineAsteroid = document.getElementById('asteroid');
+
   const timelineMargin = 3;
   const timelineWidth = 100 - 2 * timelineMargin;
 
   const normalizedZ = timelineMargin + (timelineWidth * ((asteroid.position.z - ASTEROID_START_POSITION) / (EARTH_POSITION - ASTEROID_START_POSITION)));
 
-  document.getElementById("asteroid").style.left = `${normalizedZ}%`;
-  document.getElementById("asteroid").style.transform = `rotate(${normalizedZ*5}deg)`;
+  timelineAsteroid.style.left = `${normalizedZ}%`;
+  timelineAsteroid.style.transform = `rotate(${normalizedZ*5}deg)`;
+
+  // calculate actual position of asteroid relative to timeline's total width
+  const asteroidActualPos = timelineAsteroid.getBoundingClientRect().left-40;
+  const timelineTotalWidth = timeline.getBoundingClientRect().width;
+  const asteroidPosPercentage = (asteroidActualPos / timelineTotalWidth) * 100;
+
+  timeline.style.background = `linear-gradient(to right, red ${asteroidPosPercentage}%, gray ${asteroidPosPercentage}%)`;
+
+  // Change marker color
+  const markers = document.querySelectorAll('.marker'); // select all markers
+  markers.forEach(marker => {
+    if (marker.getBoundingClientRect().left <= asteroidActualPos+70) {
+      marker.style.backgroundColor = 'red';
+    } else {
+      marker.style.backgroundColor = '#b5b5b5'; // reset to original color
+    }
+  });
+
 }
+
 
 function updateCameraPosition(camera, asteroid, mouse) {
   camera.position.x = asteroid.position.x - 2 + mouse.x * 0.1;
@@ -197,22 +222,22 @@ function onWindowResize(camera, renderer) {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function generateLoremIpsum() {
-  const words = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit'];
-  let result = '';
+// function generateLoremIpsum() {
+//   const words = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit'];
+//   let result = '';
 
-  for (let i = 0; i < 100; i++) {
-      result += words[Math.floor(Math.random() * words.length)] + ' ';
-  }
+//   for (let i = 0; i < 100; i++) {
+//       result += words[Math.floor(Math.random() * words.length)] + ' ';
+//   }
 
-  return result.trim() + '.';
-}
+//   return result.trim() + '.';
+// }
 
-function animate(composer, scene, camera, asteroid, earth, mouse) {
-  requestAnimationFrame(() => animate(composer, scene, camera, asteroid, earth, mouse));
+function animate(composer, scene, camera, asteroid, earth, years, mouse) {
+  requestAnimationFrame(() => animate(composer, scene, camera, asteroid, earth, years, mouse));
 
   updatePosition(asteroid);
-  updateYears(asteroid);
+  updateYears(asteroid, years);
   updateEarthRotation(earth);
   updateAsteroidRotation(asteroid);
   updateCameraPosition(camera, asteroid, mouse);
@@ -224,10 +249,11 @@ function animate(composer, scene, camera, asteroid, earth, mouse) {
 function main() {
   const scene = new THREE.Scene();
   const loader = new THREE.TextureLoader();
+
   createStars(scene);
   createSun(scene, loader);
-  createYears(scene);
-  
+
+  const years = createYears(scene);
   const asteroid = createAsteroid(scene, loader);
   const earth = createEarth(scene, loader);
 
@@ -252,14 +278,14 @@ function main() {
   composer.addPass(afterimagePass);
 
   const mouse = { x: 0, y: 0 };
-  const infoContainer = document.querySelector('.info-text-container');
+  // const infoContainer = document.querySelector('.info-text-container');
 
-  let loremIpsumText = '';
-  for (let i = 0; i < 50; i++) {
-      loremIpsumText += '<p>' + generateLoremIpsum() + '</p>';
-  }
+  // let loremIpsumText = '';
+  // for (let i = 0; i < 50; i++) {
+  //     loremIpsumText += '<p>' + generateLoremIpsum() + '</p>';
+  // }
 
-  document.getElementById('infoText').innerHTML = loremIpsumText;
+  // document.getElementById('infoText').innerHTML = loremIpsumText;
 
   window.addEventListener('mousemove', function(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -272,7 +298,7 @@ function main() {
    
   });
 
-  animate(composer, scene, camera, asteroid, earth, mouse);
+  animate(composer, scene, camera, asteroid, earth, years, mouse);
 }
 
 main();

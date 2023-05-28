@@ -52,7 +52,7 @@ header {
 .timeline {
   width: 100%;
   height: 2px;
-  background-color: #ffffff68;
+  background: linear-gradient(to right, red 0%, gray 0%);
   display: flex;
   justify-content: space-between;
   position: relative;
