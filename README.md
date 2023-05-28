@@ -2,6 +2,8 @@
 
 Demo project.
 
+Live version at johnnyvishnevskiy.com
+
 ## Built With
 
 - [Vite](https://vitejs.dev/)
