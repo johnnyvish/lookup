@@ -1,0 +1,124 @@
+@font-face {
+  font-family: 'titlefont';
+  src: url('/newake.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body,
+html {
+  font-family: 'titlefont', sans-serif;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+header {
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: rgba(102, 102, 102, 0.189);
+}
+
+.title {
+  position: fixed;
+  top: 3%;
+  left: 4%;
+  text-align: center;
+  font-size: 3.5rem;
+  font-weight: 300;
+  line-height: 1.2;
+  color: rgb(255, 255, 255);
+  font-family: 'titlefont', sans-serif;
+  z-index: 1000;
+}
+
+.timeline-container {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 3rem 5%;
+  background-color: rgba(0, 0, 0, 0.204);
+}
+
+.timeline {
+  width: 100%;
+  height: 2px;
+  background-color: #ffffff68;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 0 auto;
+}
+
+.decade {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.marker {
+  width: 15px;
+  height: 15px;
+  background: #b5b5b5;
+  position: absolute;
+  top: -5px;
+  border-radius: 50%;
+}
+
+.year {
+  color: #ffffff;
+  margin-top: 20px;
+  font-size: 1rem;
+}
+
+.asteroid {
+  position: absolute;
+  bottom: 55px;
+  height: 45px;
+  width: 45px;
+  background: url('/mini_asteroid.png') no-repeat center center; 
+  background-size: cover;
+ 
+}
+
+.fas.fa-info-circle {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  font-size: 2rem;
+  color: white;
+  z-index: 1000;
+}
+
+.info-text-container {
+  position: absolute;
+  right: 4%;
+  top: 10%; 
+  width: 500px;
+  padding: 20px;
+  transform: translateY(0px);
+  overflow: auto;
+  height: calc(100% - 30%);
+  mask-image: linear-gradient(to top, transparent, black 10%, black 75%, transparent), 
+              linear-gradient(to bottom, transparent, black 10%, black 75%, transparent);
+  mask-size: 100% 100%;
+  -webkit-mask-image: linear-gradient(to top, transparent, black 10%, black 75%, transparent), 
+                     linear-gradient(to bottom, transparent, black 10%, black 75%, transparent);
+  -webkit-mask-size: 100% 100%;
+}
+
+
+#infoText {
+  font-size: 1.5rem;
+  color: white;
+}
