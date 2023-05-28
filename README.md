@@ -33,4 +33,4 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your computer.
     ```
     npm run dev
     ```
-   You should now be able to see the project running at localhost:5000. Use this as the url in your browser.
+   You should now be able to see the project running at localhost. Use this as the url in your browser.
