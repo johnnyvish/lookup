@@ -28,9 +28,9 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your computer.
     npm install
     ```
 4. Install GSAP:
-```
-npm install gsap
-```
+    ```
+    npm install gsap
+    ```
 5. Start the development server:
     ```
     npm run dev
