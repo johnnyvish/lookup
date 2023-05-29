@@ -2,8 +2,6 @@
 
 Demo project.
 
-Live version [here](https://johnnyvish.github.io/)
-
 ## Built With
 
 - [Vite](https://vitejs.dev/)
