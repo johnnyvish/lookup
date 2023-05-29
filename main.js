@@ -9,15 +9,19 @@ import './style.css';
 
 const STAR_SPREAD = 1000;
 const STAR_COUNT = 30000;
-const STAR_CENTER = 200;
+const STAR_CENTER_1 = 200;
+const STAR_CENTER_2 = 600;
 const TIMELINE_START_POSITION = -50;
 const ASTEROID_START_POSITION = -400;
-const EARTH_POSITION = 400;
+const EARTH_POSITION = 800;
 const SUN_POSITION = 1000;
 const TEXT_VISIBILITY_THRESHOLD = 30;
 const EARTH_VISIBILITY_THRESHOLD = 40;
 const MAX_VELOCITY = 10;
 const DAMPING_FACTOR = 0.90;
+const CAMERA_PARAMETERS = { fov: 45, near: 0.1, far: 500 };
+const CAMERA_POSITION = { x: 0, y: -2, z: -395 };
+const AMBIENT_LIGHT = { color: 0x404040, intensity: 10 };
 
 let scrollY = 0;
 
@@ -83,7 +87,7 @@ function updateYears(asteroid, years) {
   });
 }
 
-function createStars(scene) {
+function createStars(scene, center) {
   const starsGeometry = new THREE.BufferGeometry();
   const starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.5 });
 
@@ -92,7 +96,7 @@ function createStars(scene) {
   for (let i = 0; i < STAR_COUNT; i++) {
       const x = THREE.MathUtils.randFloatSpread(STAR_SPREAD);
       const y = THREE.MathUtils.randFloatSpread(STAR_SPREAD);
-      const z = THREE.MathUtils.randFloatSpread(STAR_SPREAD) + STAR_CENTER;
+      const z = THREE.MathUtils.randFloatSpread(STAR_SPREAD) + center;
 
       starPoints.push(x, y, z);
   }
@@ -104,19 +108,19 @@ function createStars(scene) {
   scene.add(stars);
 }
 
-function createSun(scene, loader) {
-  const sunGeometry = new THREE.SphereGeometry(10, 64, 64);
-  const sunTexture = loader.load('/sun.jpeg');
-  const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
+// function createSun(scene, loader) {
+//   const sunGeometry = new THREE.SphereGeometry(10, 64, 64);
+//   const sunTexture = loader.load('/sun.jpeg');
+//   const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
 
-  const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-  sun.position.set(0,0, SUN_POSITION);
-  scene.add(sun);
+//   const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+//   sun.position.set(0,0, SUN_POSITION);
+//   scene.add(sun);
 
-  const sunLight = new THREE.DirectionalLight('white', 1);
-  sunLight.position.set(0,0,SUN_POSITION);
-  scene.add(sunLight);
-}
+//   const sunLight = new THREE.DirectionalLight('white', 1);
+//   sunLight.position.set(0,0,SUN_POSITION);
+//   scene.add(sunLight);
+// }
 
 function createEarth(scene, loader) {
   const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
@@ -164,13 +168,43 @@ function calculateMoveAmount() {
   return moveAmount;
 }
 
-function updatePosition(asteroid) {
-  const moveAmount = calculateMoveAmount();
-  updateAsteroidPosition(asteroid, moveAmount);
-  updateTimeline(asteroid);
+function updateAsteroidRotation(asteroid) {
+  asteroid.rotation.x += 0.05;
 }
 
-function updateAsteroidPosition(asteroid, moveAmount) {
+function updateEarthRotation(earth) {
+  earth.rotation.y += 0.01;
+}
+
+function mouseInteraction(camera, mouse, titleScreen) {
+  const parallaxFactor = 0.1;
+  if (titleScreen.showing) {
+    let newX = camera.position.x + mouse.x * 0.5;
+    let newY = camera.position.y + mouse.y * 0.5;
+
+    newX = Math.max(Math.min(newX, 200), -200);
+    newY = Math.max(Math.min(newY, 200), -200);
+
+    camera.position.x = newX;
+    camera.position.y = newY;
+
+    return;
+    
+  } else {
+    camera.position.x += mouse.x * parallaxFactor;
+    camera.position.y += mouse.y * parallaxFactor;
+  }
+}
+
+
+function onWindowResize(camera, renderer) {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function updateAsteroidPosition(asteroid, earth, camera, titleScreen) {
+  const moveAmount = calculateMoveAmount();
   asteroid.position.z += moveAmount;
 
   if (asteroid.position.z < ASTEROID_START_POSITION){
@@ -180,82 +214,47 @@ function updateAsteroidPosition(asteroid, moveAmount) {
   if (asteroid.position.z > EARTH_POSITION){
     asteroid.position.z = EARTH_POSITION;
   }
+
+  if (!titleScreen.showing) {
+    camera.position.x = asteroid.position.x-2;
+    camera.position.y = asteroid.position.y;
+    camera.position.z = asteroid.position.z-4;
+  }
+
 }
 
-function updateTimeline(asteroid) {
+function updateInitialCamera(camera, asteroid, earth, mouse, titleScreen) {
+  const newPosition = {
+    x: asteroid.position.x - 2,
+    y: asteroid.position.y,
+    z: asteroid.position.z - 4
+  };
 
-  const timeline = document.querySelector('.timeline');
-  const timelineAsteroid = document.getElementById('asteroid');
-
-  const timelineMargin = 3;
-  const timelineWidth = 100 - 2 * timelineMargin;
-
-  const normalizedZ = timelineMargin + (timelineWidth * ((asteroid.position.z - TIMELINE_START_POSITION) / (EARTH_POSITION - TIMELINE_START_POSITION)));
-
-  timelineAsteroid.style.left = `${normalizedZ}%`;
-  timelineAsteroid.style.transform = `rotate(${normalizedZ*5}deg)`;
-
-  const asteroidActualPos = timelineAsteroid.getBoundingClientRect().left-40;
-  const timelineTotalWidth = timeline.getBoundingClientRect().width;
-  const asteroidPosPercentage = (asteroidActualPos / timelineTotalWidth) * 100;
-
-  timeline.style.background = `linear-gradient(to right, red ${asteroidPosPercentage}%, gray ${asteroidPosPercentage}%)`;
-
-  const markers = document.querySelectorAll('.marker');
-  markers.forEach(marker => {
-    if (marker.getBoundingClientRect().left <= asteroidActualPos+70) {
-      marker.style.backgroundColor = 'red';
-    } else {
-      marker.style.backgroundColor = '#b5b5b5';
-    }
+  gsap.to(camera.position, { 
+    duration: 2, 
+    x: newPosition.x, 
+    y: newPosition.y, 
+    z: newPosition.z,
+    ease: "power4", 
+    onUpdate: function() {
+      camera.lookAt(earth.position);
+    },
+    onComplete: function() {
+      camera.lookAt(earth.position);
+      titleScreen.showing = false;
+    } 
   });
 }
 
-function updateCameraPosition(camera, asteroid, mouse) {
-  camera.position.x = asteroid.position.x - 2 + mouse.x * 0.1;
-  camera.position.y = asteroid.position.y + mouse.y * 0.1;
-  camera.position.z = asteroid.position.z - 4;
-}
+function animate(composer, scene, camera, asteroid, earth, years, mouse, titleScreen) {
+  requestAnimationFrame(() => animate(composer, scene, camera, asteroid, earth, years, mouse, titleScreen));
 
-function updateAsteroidRotation(asteroid) {
-  asteroid.rotation.x += 0.05;
-}
-
-function updateEarthRotation(earth) {
-  earth.rotation.y += 0.01;
-}
-
-function lookAtEarth(camera, earth) {
-  camera.lookAt(earth.position.x-1, earth.position.y, earth.position.z);
-}
-
-function onWindowResize(camera, renderer) {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// function generateLoremIpsum() {
-//   const words = ['lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit'];
-//   let result = '';
-
-//   for (let i = 0; i < 100; i++) {
-//       result += words[Math.floor(Math.random() * words.length)] + ' ';
-//   }
-
-//   return result.trim() + '.';
-// }
-
-function animate(composer, scene, camera, asteroid, earth, years, mouse) {
-  requestAnimationFrame(() => animate(composer, scene, camera, asteroid, earth, years, mouse));
-
-  updatePosition(asteroid);
+  updateAsteroidPosition(asteroid, earth, camera, titleScreen);
   updateYears(asteroid, years);
   updateEarth(asteroid, earth);
   updateEarthRotation(earth);
   updateAsteroidRotation(asteroid);
-  updateCameraPosition(camera, asteroid, mouse);
-  lookAtEarth(camera, earth);
+  mouseInteraction(camera,mouse, titleScreen);
 
   composer.render(scene, camera);
 }
@@ -264,18 +263,26 @@ function main() {
   const scene = new THREE.Scene();
   const loader = new THREE.TextureLoader();
 
-  createStars(scene);
+  createStars(scene, STAR_CENTER_1);
+  createStars(scene, STAR_CENTER_2);
   // createSun(scene, loader);
 
   const years = createYears(scene);
   const asteroid = createAsteroid(scene, loader);
   const earth = createEarth(scene, loader);
 
-  const ambientLight = new THREE.AmbientLight(0x404040, 10);
+  const ambientLight = new THREE.AmbientLight(AMBIENT_LIGHT.color, AMBIENT_LIGHT.intensity);
   scene.add(ambientLight);
 
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 5);
+  const camera = new THREE.PerspectiveCamera(
+    CAMERA_PARAMETERS.fov, 
+    window.innerWidth / window.innerHeight, 
+    CAMERA_PARAMETERS.near, 
+    CAMERA_PARAMETERS.far
+    );
+
+  camera.position.set(CAMERA_POSITION.x, CAMERA_POSITION.y, CAMERA_POSITION.z);
+  camera.lookAt(asteroid.position.x, asteroid.position.y-2, asteroid.position.z+100);
 
   const canvas = document.querySelector(".webgl");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -292,35 +299,59 @@ function main() {
   // composer.addPass(afterimagePass);
 
   const mouse = { x: 0, y: 0 };
-  // const infoContainer = document.querySelector('.info-text-container');
-
-  // let loremIpsumText = '';
-  // for (let i = 0; i < 50; i++) {
-  //     loremIpsumText += '<p>' + generateLoremIpsum() + '</p>';
-  // }
-
-  // document.getElementById('infoText').innerHTML = loremIpsumText;
 
   window.addEventListener('mousemove', function(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   });
+
   window.addEventListener('resize', () => onWindowResize(camera, renderer), false);
 
+  const titleScreen = {showing: true}
+
   window.addEventListener('wheel', function(e) {
-    scrollY += e.deltaY;
-   
+    if (!titleScreen.showing) {
+      scrollY += e.deltaY;
+    }
   });
 
-  gsap.from('.title div', {y: '-400%', ease: 'power2', stagger: 0.1});
-  // gsap.from('.fa-info-circle', {duration: 1, x: '300%', ease: 'power2'});
-  // gsap.to(".timeline-container", {duration: 2, width: "100%", opacity: 1});
+  gsap.from('.fa-info-circle', {duration: 3, opacity: 0, ease: 'power2'});
 
+  gsap.from(".title div", {
+    scale: 0,
+    y: '100%',
+    opacity: 0,
+    ease: "power2",
+    duration: 0.5,
+    stagger: 0.1
+  });
 
+  gsap.from(".explore-button", {
+    scale: 0,
+    y: '100%',
+    opacity: 0,
+    ease: "power2",
+    duration: 0.5,
+    delay: 0.5
+  });
 
+  let handle = document.querySelector("#scrollbar-handle");
 
+  document.querySelector('.explore-button').addEventListener('click', () => {
+    gsap.to('.title', {
+      duration: 1,
+      y: '-350%',
+      fontSize:'3rem',
+      ease: 'power3.out'
+    });
 
-  animate(composer, scene, camera, asteroid, earth, years, mouse);
+    document.querySelector('.explore-button').style.display = 'none';
+
+    updateInitialCamera(camera, asteroid, earth, mouse, titleScreen);
+
+  });
+
+  animate(composer, scene, camera, asteroid, earth, years, mouse, titleScreen);
 }
 
 main();
