@@ -2,8 +2,6 @@
 
 Demo project.
 
-Live version [here](https://johnnyvish.github.io/)
-
 ## Built With
 
 - [Vite](https://vitejs.dev/)
@@ -29,7 +27,11 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your computer.
     ```
     npm install
     ```
-4. Start the development server:
+4. Install GSAP:
+    ```
+    npm install gsap
+    ```
+5. Start the development server:
     ```
     npm run dev
     ```
