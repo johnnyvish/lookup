@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'buttonfont';
+    src: url('/dmsans.woff2') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'titlefont';
+    src: url('/newake.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @layer components {
+    .font-title {
+      font-family: 'titlefont', sans-serif;
+    }
+  
+    .font-button {
+      font-family: 'buttonfont', sans-serif;
+    }
+  }
+  
