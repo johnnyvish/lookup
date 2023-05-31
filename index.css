@@ -4,14 +4,14 @@
 
 @font-face {
     font-family: 'buttonfont';
-    src: url('/dmsans.woff2') format('woff');
+    src: url('/fonts/dmsans.woff2') format('woff');
     font-weight: normal;
     font-style: normal;
   }
   
   @font-face {
     font-family: 'titlefont';
-    src: url('/newake.otf') format('opentype');
+    src: url('/fonts/newake.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
   }
@@ -25,4 +25,9 @@
       font-family: 'buttonfont', sans-serif;
     }
   }
+
+  #credits {
+    transition: all 0.5s ease-in-out;
+  }
+  
   
