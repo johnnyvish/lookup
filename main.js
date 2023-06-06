@@ -38,25 +38,43 @@ const CAMERA_PARAMETERS = {
 
 const SUNLIGHT_PARAMETERS = {
   properties: { color: 0x404040, intensity: 10 },
-  position: { x: 420, y: -10, z: -500 },
+  position: { x: -420, y: -10, z: -500 },
 };
 
 const ASTEROID_PARAMETERS = {
-  properties: { radius: 1, widthSegments: 8, heightSegments: 16 },
+  properties: { radius: 1, widthSegments: 12, heightSegments: 8 },
   position: { x: 0, y: 0, z: -1000 },
   rotation: { x: 0.01, y: 0, z: 0 },
   texturePath: "/images/asteroid.jpeg",
 };
 
 const EARTH_PARAMETERS = {
-  properties: { radius: 80, widthSegments: 32, heightSegments: 32 },
+  properties: { radius: 80, widthSegments: 64, heightSegments: 64 },
   position: { x: 0, y: 0, z: 3100 },
-  rotation: { x: 0, y: 0.001, z: 0 },
+  rotation: { x: 0, y: Math.PI / (60 * 24), z: 0 },
   texturePath: {
     color: "/images/earth.jpg",
     normal: "/images/earth-normal.png",
     specular: "/images/earth-spec.png",
   },
+};
+
+const MOON_PARAMETERS = {
+  properties: {
+    radius: 20,
+    widthSegments: 32,
+    heightSegments: 32,
+  },
+  texturePath: {
+    color: "/images/moon.jpeg",
+  },
+  position: {
+    x: 500,
+    y: 0,
+    z: 4000,
+  },
+  angle: 0,
+  radiusOrbit: 900,
 };
 
 const ATMOSPHERE_PARAMETERS = {
@@ -184,7 +202,6 @@ const textData = [
 ];
 
 const DISTANCE_THRESHOLD = 200;
-
 const TITLE_SCREEN_STATE = { showing: true };
 const BUTTON_STATE = { clicked: false };
 const MOUSE = { x: 0, y: 0 };
@@ -280,12 +297,49 @@ function createEarth(scene, loader) {
   });
 }
 
+function createMoon(scene, loader) {
+  return new Promise((resolve, reject) => {
+    const moonGeometry = new THREE.SphereGeometry(
+      MOON_PARAMETERS.properties.radius,
+      MOON_PARAMETERS.properties.widthSegments,
+      MOON_PARAMETERS.properties.heightSegments
+    );
+
+    const moonMaterial = new THREE.MeshPhongMaterial();
+
+    const loadTexture = (path) => {
+      return new Promise((resolve, reject) => {
+        loader.load(path, resolve, undefined, reject);
+      });
+    };
+
+    loadTexture(MOON_PARAMETERS.texturePath.color)
+      .then((moonTexture) => {
+        moonMaterial.map = moonTexture;
+
+        const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+        moon.userData = { moonTexture };
+
+        moon.position.set(
+          MOON_PARAMETERS.position.x,
+          MOON_PARAMETERS.position.y,
+          MOON_PARAMETERS.position.z
+        );
+
+        scene.add(moon);
+
+        resolve(moon);
+      })
+      .catch(reject);
+  });
+}
+
 function createAsteroid(scene, loader) {
   return new Promise((resolve, reject) => {
     const asteroidGeometry = new THREE.SphereGeometry(
-      ASTEROID_PARAMETERS.radius,
-      ASTEROID_PARAMETERS.widthSegments,
-      ASTEROID_PARAMETERS.heightSegments
+      ASTEROID_PARAMETERS.properties.radius,
+      ASTEROID_PARAMETERS.properties.widthSegments,
+      ASTEROID_PARAMETERS.properties.heightSegments
     );
     loader.load(
       ASTEROID_PARAMETERS.texturePath,
@@ -430,10 +484,6 @@ function createText(scene) {
   return Promise.all(textObjects);
 }
 
-function updateEarthRotation(earth) {
-  earth.rotation.y -= EARTH_PARAMETERS.rotation.y;
-}
-
 function updateAsteroidPosition(asteroid) {
   const scrollAmount = calculateScrollAmount();
 
@@ -472,6 +522,25 @@ function updateAsteroidPosition(asteroid) {
 
 function updateAsteroidRotation(asteroid) {
   asteroid.rotation.x += ASTEROID_PARAMETERS.rotation.x;
+}
+
+function updateEarthRotation(earth) {
+  earth.rotation.y += EARTH_PARAMETERS.rotation.y;
+}
+
+function updateMoon(earth, moon) {
+  moon.position.x =
+    earth.position.x +
+    MOON_PARAMETERS.radiusOrbit * Math.sin(MOON_PARAMETERS.angle);
+  moon.position.z =
+    earth.position.z +
+    MOON_PARAMETERS.radiusOrbit * Math.cos(MOON_PARAMETERS.angle);
+
+  MOON_PARAMETERS.angle += EARTH_PARAMETERS.rotation.y;
+  if (MOON_PARAMETERS.angle >= Math.PI * 2) {
+    MOON_PARAMETERS.angle = 0;
+  }
+  moon.rotation.y += EARTH_PARAMETERS.rotation.y;
 }
 
 function updateText(asteroid, texts) {
@@ -878,6 +947,7 @@ function animate(
   camera,
   asteroid,
   earth,
+  moon,
   texts,
   stars,
   sunlight,
@@ -890,6 +960,7 @@ function animate(
       camera,
       asteroid,
       earth,
+      moon,
       texts,
       stars,
       sunlight,
@@ -906,6 +977,7 @@ function animate(
   updateSunlight(sunlight, asteroid, earth, atmosphere);
   mouseInteraction(camera);
   shakeCamera(camera, asteroid, earth);
+  updateMoon(earth, moon);
 
   renderer.render(scene, camera);
 }
@@ -918,6 +990,7 @@ async function main() {
   const loader = new THREE.TextureLoader();
 
   const { earth, atmosphere } = await createEarth(scene, loader);
+  const moon = await createMoon(scene, loader);
   const asteroid = await createAsteroid(scene, loader);
   const sunlight = await createSunlight(scene, asteroid);
   const stars = await createStars(scene);
@@ -935,6 +1008,7 @@ async function main() {
     camera,
     asteroid,
     earth,
+    moon,
     text,
     stars,
     sunlight,
