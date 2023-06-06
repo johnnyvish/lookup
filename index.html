@@ -2,29 +2,85 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="/index.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="/index.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <title>Look Up</title>
   </head>
-  <body class="font-title overflow-hidden flex flex-col items-center h-screen"> 
-    <div id="custom-scrollbar" class="fixed top-0 right-0 w-0.5 h-screen bg-transparent">
-      <div id="scrollbar-handle" class="relative w-full h-10 bg-white bg-opacity-100"></div>
+  <body class="flex items-center h-screen overflow-hidden flex-col">
+    <object
+      id="svg-logo"
+      class="h-[35vh] w-auto absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 invisible"
+      data="/images/yellowdot2.svg"
+      type="image/svg+xml"
+    ></object>
+
+    <div
+      id="loading-bar-background"
+      class="w-[30vh] h-1 bg-white opacity-1 absolute transform -translate-x-1/2 bottom-[38%] left-1/2"
+    >
+      <div id="loading-bar-foreground" class="w-0 h-full bg-yellow-400"></div>
     </div>
-    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center space-y-5">
-      <div class="title flex text-center text-9xl font-light leading-none text-white/80">
-        <div>L</div>
-        <div>O</div>
-        <div>O</div>
-        <div>K&nbsp;</div>
-        <div>U</div>
-        <div>P</div>
-      </div>
-      <button class="explore-button font-button text-black bg-white border-0 py-2 px-5 text-xl rounded-xl transition-colors duration-300 hover:bg-blue-900/80 hover:text-white">Explore</button>
+
+    <img
+      class="yellow-dot-logo h-20 w-auto absolute invisible top-6 left-6"
+      src="/images/yellowdot.png"
+      alt="Logo"
+    />
+    <div
+      id="custom-scrollbar"
+      class="w-2 h-screen bg-white/0 fixed top-0 right-0"
+    >
+      <div
+        id="scrollbar-handle"
+        class="w-full h-8 bg-white bg-opacity-100 relative invisible"
+      ></div>
     </div>
-    <i id = "info-icon" class="fas fa-info-circle absolute top-5 right-5 text-2xl text-white z-10"></i>
-    </div>    
+
+    <div
+      class="title font-newake text-6xl xxsm:text-7xl xsm:text-8xl sm:text-9xl font-light leading-none text-white/90 flex flex-row invisible absolute transform -translate-x-1/2 text-center top-[43%] left-1/2"
+    >
+      <div>L</div>
+      <div>O</div>
+      <div>O</div>
+      <div>K&nbsp;</div>
+      <div>U</div>
+      <div>P</div>
+    </div>
+
+    <button
+      class="explore-button font-dmsans text-2xl xsm:text-3xl bg-red-800/80 text-white border-0 py-2 px-7 xsm:py-3 xsm:px-8 rounded-full transition-colors duration-300 hover:bg-yellow-400/80 hover:text-white invisible absolute transform -translate-x-1/2 -translate-y-1/2 top-[59%] xsm:top-[64%] left-1/2"
+    >
+      Explore
+    </button>
+
+    <button
+      id="about-button"
+      class="font-newake text-2xl text-white invisible absolute top-5 right-5 z-10"
+    >
+      About
+    </button>
+    <button
+      id="close-button"
+      class="text-2xl text-white hidden absolute top-5 right-5 z-10"
+    >
+      X
+    </button>
+    <div
+      id="scroll-indicator"
+      class="font-dmsans text-2xl text-white opacity-0 flex flex-col items-center space-y-1 absolute transform -translate-x-1/2 bottom-[5%] left-1/2"
+    >
+      <span>Scroll to begin</span>
+      <i class="fas fa-angle-down"></i>
+    </div>
+    <div class="fixed bottom-3 right-3 text-white text-xs">
+      &copy; 2023 Yellow Dot Studios. All Rights Reserved.
+    </div>
+
     <div id="main-content">
       <canvas class="webgl"></canvas>
     </div>
