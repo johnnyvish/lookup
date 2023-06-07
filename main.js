@@ -30,7 +30,7 @@ const CAMERA_PARAMETERS = {
   focal: 20,
   near: 0.1,
   far: 2000,
-  initialPosition: { x: 0, y: 50, z: 2900 },
+  initialPosition: { x: 100, y: 50, z: 2600 },
   toAsteroidDistance: 10,
   maxShake: 0.3,
   distancetoShake: 500,
@@ -723,73 +723,103 @@ function showScene() {
   });
 }
 
-function showTitleScreen() {
-  gsap.to("#svg-logo", {
-    autoAlpha: 0,
-    ease: "power2",
-    duration: 0.5,
-  });
+function animateLoadingScreen(sunlight, camera, earth) {
+  var tl = gsap.timeline();
 
-  gsap.to("#loading-bar-foreground", {
-    autoAlpha: 0,
-    duration: 0.5,
-    ease: "power1",
-  });
+  tl.add([
+    gsap.from(sunlight, {
+      intensity: 0,
+      ease: "none",
+      duration: 10,
+    }),
+    gsap.from("#svg-logo", {
+      autoAlpha: 0,
+      ease: "power2",
+      duration: 4,
+    }),
+    gsap.from("#loading-bar-foreground", {
+      autoAlpha: 0,
+      duration: 4,
+      ease: "power1",
+    }),
+    gsap.to("#loading-bar-background", {
+      autoAlpha: 1,
+      duration: 4,
+      ease: "power1",
+    }),
+    gsap.to("#loading-bar-foreground", {
+      width: "100%",
+      duration: 10,
+      ease: "none",
+    }),
+  ]);
 
-  gsap.to("#loading-bar-background", {
-    autoAlpha: 0,
-    duration: 0.5,
-    ease: "power1",
-  });
+  let lookAtTween = {
+    x: earth.position.x,
+    y: earth.position.y - 75,
+    z: earth.position.z,
+  };
 
-  gsap.to(".title div", {
-    y: "-50%",
-    ease: "power2",
-    duration: 1,
-    stagger: 0.1,
-    delay: 0.5,
-  });
-
-  gsap.to(".title", {
-    autoAlpha: 1,
-    ease: "power2",
-    duration: 1,
-    delay: 0.5,
-  });
-
-  gsap.to(".explore-button", {
-    y: "-120%",
-    autoAlpha: 1,
-    ease: "power2",
-    duration: 1,
-    delay: 0.5,
-  });
-}
-
-function showLoading() {
-  gsap.from("#svg-logo", {
-    autoAlpha: 0,
-    ease: "power2",
-    duration: 1,
-  });
-
-  gsap.from("#loading-bar-foreground", {
-    autoAlpha: 0,
-    duration: 1,
-    ease: "power1",
-  });
-
-  gsap.from("#loading-bar-background", {
-    autoAlpha: 0,
-    duration: 1,
-    ease: "power1",
-  });
-
-  gsap.to("#loading-bar-foreground", {
-    width: "100%",
-    duration: 10,
-    ease: "power1",
-  });
+  tl.add([
+    gsap.to("#svg-logo", {
+      autoAlpha: 0,
+      ease: "power2",
+      duration: 1,
+    }),
+    gsap.to("#loading-bar-foreground", {
+      autoAlpha: 0,
+      duration: 0.5,
+      ease: "power1",
+    }),
+    gsap.to("#loading-bar-background", {
+      autoAlpha: 0,
+      duration: 1,
+      ease: "power1",
+    }),
+    gsap.to(lookAtTween, {
+      duration: 3,
+      x: earth.position.x,
+      y: earth.position.y,
+      z: earth.position.z,
+      ease: "power4",
+      delay: 1,
+      onUpdate: function () {
+        camera.lookAt(lookAtTween.x, lookAtTween.y, lookAtTween.z);
+        camera.updateProjectionMatrix();
+      },
+    }),
+    gsap.to(camera.position, {
+      duration: 3,
+      x: 0,
+      y: 0,
+      z: 2900,
+      ease: "power4",
+      delay: 1,
+      onUpdate: function () {
+        camera.updateProjectionMatrix();
+      },
+    }),
+    gsap.to(".title div", {
+      y: "-50%",
+      ease: "power2",
+      duration: 1,
+      stagger: 0.1,
+      delay: 3,
+    }),
+    gsap.to(".title", {
+      autoAlpha: 1,
+      ease: "power2",
+      duration: 1,
+      delay: 3,
+    }),
+    gsap.to(".explore-button", {
+      y: "-120%",
+      autoAlpha: 1,
+      ease: "power2",
+      duration: 1,
+      delay: 3,
+    }),
+  ]);
 }
 
 function moveScrollIndicator() {
@@ -827,7 +857,7 @@ function setupCamera(earth) {
   );
 
   camera.setFocalLength(CAMERA_PARAMETERS.focal);
-  camera.lookAt(earth.position.x, earth.position.y, earth.position.z);
+  camera.lookAt(earth.position.x, earth.position.y - 75, earth.position.z);
 
   return camera;
 }
@@ -983,22 +1013,20 @@ function animate(
 }
 
 async function main() {
-  showLoading();
-  setTimeout(showTitleScreen, 10000);
-
   const scene = new THREE.Scene();
   const loader = new THREE.TextureLoader();
 
+  const stars = await createStars(scene);
   const { earth, atmosphere } = await createEarth(scene, loader);
   const moon = await createMoon(scene, loader);
   const asteroid = await createAsteroid(scene, loader);
   const sunlight = await createSunlight(scene, asteroid);
-  const stars = await createStars(scene);
   const text = await createText(scene);
 
   const camera = setupCamera(earth);
   const renderer = setupRenderer();
 
+  animateLoadingScreen(sunlight, camera, earth);
   setupWindowEventListeners(camera, renderer);
   setupButtonInteractions(camera, asteroid, earth);
 

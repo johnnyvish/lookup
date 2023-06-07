@@ -11,21 +11,28 @@
     />
     <title>Look Up</title>
   </head>
-  <body class="flex items-center h-screen overflow-hidden flex-col">
+  <body class="flex items-center h-screen overflow-hidden flex-col bg-black">
     <object
       id="svg-logo"
-      class="h-[35vh] w-auto absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 invisible"
-      data="/images/yellowdot2.svg"
+      class="h-[30vh] w-auto absolute transform -translate-x-1/2 -translate-y-1/2 top-[42%] left-1/2 invisible"
+      data="/images/yellowdot2.sg"
       type="image/svg+xml"
     ></object>
 
     <div
       id="loading-bar-background"
-      class="w-[30vh] h-1 bg-white opacity-1 absolute transform -translate-x-1/2 bottom-[38%] left-1/2"
+      class="w-[60vh] h-1 bg-white opacity-1 absolute transform -translate-x-1/2 bottom-[40%] left-1/2 invisible"
     >
       <div id="loading-bar-foreground" class="w-0 h-full bg-yellow-400"></div>
+      <div id="loading-bar-text" class="text-white font-dmsans mt-[2%]">
+        "Government leaders, the media, and heads of industry need to stop
+        living in a world that fits their needs and feels familiar, and start
+        living in the world as it is. The alternative is unimaginably grim."
+        <br />
+        <br />
+        - Adam McKay
+      </div>
     </div>
-
     <img
       class="yellow-dot-logo h-20 w-auto absolute invisible top-6 left-6"
       src="/images/yellowdot.png"
