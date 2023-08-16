@@ -33,7 +33,7 @@ const TEXT_PARAMETERS = {
   fontURL: "/fonts/Bebas.json",
   yearText: {
     size: 3,
-    height: 0.1,
+    height: 0.5,
     curveSegments: 10,
     bevel: {
       enabled: true,
@@ -78,61 +78,43 @@ const textData = [
   {
     year: 1960,
     info: "Rapid deforestation and urbanization\nfurther escalate greenhouse gas emissions.",
-    position: new THREE.Vector3(-7, 0, 200),
+    position: new THREE.Vector3(-7, 0, 150),
     rotation: 0,
   },
   {
     year: 1970,
     info: "The Clean Air Act is passed in the USA, but global\nemissions continue to rise.",
-    position: new THREE.Vector3(-7, 0, 300),
+    position: new THREE.Vector3(-7, 0, 200),
     rotation: 0,
   },
   {
     year: 1980,
     info: "Scientists reach consensus on\nthe reality of climate change, but political action is slow.",
-    position: new THREE.Vector3(-7, 0, 400),
+    position: new THREE.Vector3(-7, 0, 250),
     rotation: 0,
   },
   {
     year: 1990,
     info: "The IPCC is formed but struggles\nto influence global climate policy.",
-    position: new THREE.Vector3(-7, 0, 500),
+    position: new THREE.Vector3(-7, 0, 300),
     rotation: 0,
   },
   {
     year: 2000,
     info: "Record high temperatures and extreme weather events\nbecome the new normal.",
-    position: new THREE.Vector3(-7, 1, 2500),
+    position: new THREE.Vector3(-7, 0, 350),
     rotation: 0,
   },
   {
     year: 2010,
     info: "Despite the Paris Agreement, countries fall short of\ntheir commitments to reduce emissions.",
-    position: new THREE.Vector3(-7, 1, 2600),
+    position: new THREE.Vector3(-7, 0, 400),
     rotation: 0,
   },
   {
     year: 2023,
     info: "The world witnesses unprecedented climate disasters,\nas global warming exceeds the 1.5 degrees Celsius threshold.",
-    position: new THREE.Vector3(-7, 1, 2700),
-    rotation: 0,
-  },
-  {
-    year: 2024,
-    info: "Despite efforts, carbon emissions continue to rise\nat a dangerous rate.",
-    position: new THREE.Vector3(-5, 1, 2800),
-    rotation: 0,
-  },
-  {
-    year: 2025,
-    info: "Fossil fuels still dominate the energy landscape,\nand renewable energy adoption is slower than needed.",
-    position: new THREE.Vector3(-5, 1, 2900),
-    rotation: 0,
-  },
-  {
-    year: 2026,
-    info: "Climate change-related crises intensify worldwide. The 2 degrees Celsius\ntarget seems increasingly out of reach.",
-    position: new THREE.Vector3(7, 1, 2950),
+    position: new THREE.Vector3(-7, 0, 450),
     rotation: 0,
   },
 ];
@@ -167,7 +149,7 @@ function createText(scene) {
         yearText.position.z =
           position.z + TEXT_PARAMETERS.yearText.positionOffset.z;
         yearText.rotation.y = rotation;
-
+        yearText.name = `yearText_${year}`;
         scene.add(yearText);
 
         const infoTextGeo = new TextGeometry(info, {
@@ -187,7 +169,7 @@ function createText(scene) {
         infoText.position.y = position.y;
         infoText.position.z = position.z;
         infoText.rotation.y = rotation;
-
+        infoText.name = `infoText_${year}`;
         scene.add(infoText);
 
         resolve({ yearText: yearText, infoText: infoText });
@@ -196,6 +178,23 @@ function createText(scene) {
   });
 
   return Promise.all(textObjects);
+}
+
+function updateTextOpacity(camera, scene) {
+  textData.forEach(({ year }) => {
+    const yearText = scene.getObjectByName(`yearText_${year}`);
+    const infoText = scene.getObjectByName(`infoText_${year}`);
+    const distance = camera.position.z - yearText.position.z;
+
+    const opacityThreshold = 50;
+    const opacity = 1 - Math.min(Math.abs(distance) / opacityThreshold, 1);
+
+    yearText.material.opacity = opacity;
+    infoText.material.opacity = opacity;
+
+    yearText.material.transparent = true;
+    infoText.material.transparent = true;
+  });
 }
 
 function createEarth(scene, loader) {
@@ -318,13 +317,13 @@ function setupRenderer() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 3.0;
+  renderer.toneMappingExposure = 2.7;
 
   return renderer;
 }
 
 function setupLighting(scene) {
-  const light = new THREE.DirectionalLight(0xffffff, 1);
+  const light = new THREE.DirectionalLight(0xffffff, 2);
   light.position.set(500, 0, 500).normalize();
   scene.add(light);
 }
@@ -372,6 +371,8 @@ function animate(renderer, scene, camera) {
   if (earth) {
     earth.rotation.y += EARTH_PARAMETERS.rotation.y;
   }
+
+  updateTextOpacity(camera, scene);
 
   renderer.render(scene, camera);
 }
