@@ -199,11 +199,9 @@ function createText(scene) {
 }
 
 function createEarth(scene, loader) {
-  // Group for earth and clouds
   const earthGroup = new THREE.Group();
-  earthGroup.name = "earth"; // Set the group name to 'earth'
+  earthGroup.name = "earth";
 
-  // Earth creation code
   const geometry = new THREE.SphereGeometry(
     EARTH_PARAMETERS.properties.radius,
     EARTH_PARAMETERS.properties.widthSegments,
@@ -223,14 +221,13 @@ function createEarth(scene, loader) {
   });
 
   const earthMesh = new THREE.Mesh(geometry, material);
-  earthMesh.name = "earthMesh"; // This is the individual Earth mesh
+  earthMesh.name = "earthMesh";
   earthGroup.add(earthMesh);
 
-  // Cloud creation code
   const cloudAlphaTexture = loader.load(EARTH_PARAMETERS.texturePath.cloud);
   cloudAlphaTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.01; // Slightly larger than Earth
+  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.01;
   const cloudGeometry = new THREE.SphereGeometry(
     cloudRadius,
     EARTH_PARAMETERS.properties.widthSegments,
@@ -240,7 +237,7 @@ function createEarth(scene, loader) {
   const cloudMaterial = new THREE.MeshPhongMaterial({
     alphaMap: cloudAlphaTexture,
     transparent: true,
-    depthWrite: false, // This helps prevent graphical artifacts (z-fighting)
+    depthWrite: false,
   });
 
   const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
@@ -353,6 +350,23 @@ function handleScroll(event, camera) {
   camera.position.z += deltaY * zoomSpeed;
 }
 
+let startY;
+
+function handleTouchStart(event) {
+  startY = event.touches[0].clientY;
+}
+
+function handleTouchMove(event, camera) {
+  const deltaY = startY - event.touches[0].clientY; // calculate difference between start and current Y position
+  const movementSpeed = 2; // adjust this value for desired speed
+  camera.position.z += deltaY * movementSpeed;
+  startY = event.touches[0].clientY; // update the start position
+}
+
+function handleTouchEnd(event) {
+  return;
+}
+
 function animate(renderer, scene, camera) {
   requestAnimationFrame(() => animate(renderer, scene, camera));
 
@@ -383,6 +397,13 @@ async function main() {
   );
 
   window.addEventListener("wheel", (event) => handleScroll(event, camera));
+  window.addEventListener("touchstart", (event) =>
+    handleTouchStart(event, camera)
+  );
+  window.addEventListener("touchmove", (event) =>
+    handleTouchMove(event, camera)
+  );
+  window.addEventListener("touchend", (event) => handleTouchEnd(event, camera));
 
   animate(renderer, scene, camera);
 }
