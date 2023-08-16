@@ -16,6 +16,9 @@ const EARTH_PARAMETERS = {
   rotation: { x: 0, y: Math.PI / (60 * 24 * 2), z: 0 },
   texturePath: {
     color: "/images/earth.jpg",
+    normal: "/images/earth-normal.jpg",
+    specular: "/images/earth-specular.jpg",
+    cloud: "/images/clouds.jpg",
   },
 };
 
@@ -196,27 +199,63 @@ function createText(scene) {
 }
 
 function createEarth(scene, loader) {
+  // Group for earth and clouds
+  const earthGroup = new THREE.Group();
+  earthGroup.name = "earth"; // Set the group name to 'earth'
+
+  // Earth creation code
   const geometry = new THREE.SphereGeometry(
     EARTH_PARAMETERS.properties.radius,
     EARTH_PARAMETERS.properties.widthSegments,
     EARTH_PARAMETERS.properties.heightSegments
   );
 
-  const texture = loader.load(EARTH_PARAMETERS.texturePath.color);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const material = new THREE.MeshPhongMaterial({ map: texture });
+  const colorTexture = loader.load(EARTH_PARAMETERS.texturePath.color);
+  colorTexture.colorSpace = THREE.SRGBColorSpace;
+  const normalTexture = loader.load(EARTH_PARAMETERS.texturePath.normal);
+  const specularTexture = loader.load(EARTH_PARAMETERS.texturePath.specular);
 
-  const earth = new THREE.Mesh(geometry, material);
-  earth.position.set(
+  const material = new THREE.MeshPhongMaterial({
+    map: colorTexture,
+    normalMap: normalTexture,
+    specularMap: specularTexture,
+    normalScale: new THREE.Vector2(2, 2),
+  });
+
+  const earthMesh = new THREE.Mesh(geometry, material);
+  earthMesh.name = "earthMesh"; // This is the individual Earth mesh
+  earthGroup.add(earthMesh);
+
+  // Cloud creation code
+  const cloudAlphaTexture = loader.load(EARTH_PARAMETERS.texturePath.cloud);
+  cloudAlphaTexture.colorSpace = THREE.SRGBColorSpace;
+
+  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.01; // Slightly larger than Earth
+  const cloudGeometry = new THREE.SphereGeometry(
+    cloudRadius,
+    EARTH_PARAMETERS.properties.widthSegments,
+    EARTH_PARAMETERS.properties.heightSegments
+  );
+
+  const cloudMaterial = new THREE.MeshPhongMaterial({
+    alphaMap: cloudAlphaTexture,
+    transparent: true,
+    depthWrite: false, // This helps prevent graphical artifacts (z-fighting)
+  });
+
+  const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+  clouds.name = "clouds";
+  earthGroup.add(clouds);
+
+  earthGroup.position.set(
     EARTH_PARAMETERS.position.x,
     EARTH_PARAMETERS.position.y,
     EARTH_PARAMETERS.position.z
   );
 
-  earth.name = "earth";
-  scene.add(earth);
+  scene.add(earthGroup);
 
-  return earth;
+  return earthGroup;
 }
 
 function createStars(scene) {
@@ -282,7 +321,7 @@ function setupRenderer() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 2.0;
+  renderer.toneMappingExposure = 3.0;
 
   return renderer;
 }
