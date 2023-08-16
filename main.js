@@ -5,7 +5,7 @@ import "./style.css";
 
 let CAMERA_PARAMETERS = {
   fov: 45,
-  near: 0.1,
+  near: 10,
   far: 2000,
   position: { x: 0, y: 0, z: 500 },
 };
@@ -227,7 +227,7 @@ function createEarth(scene, loader) {
   const cloudAlphaTexture = loader.load(EARTH_PARAMETERS.texturePath.cloud);
   cloudAlphaTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.01;
+  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.02;
   const cloudGeometry = new THREE.SphereGeometry(
     cloudRadius,
     EARTH_PARAMETERS.properties.widthSegments,
@@ -357,10 +357,10 @@ function handleTouchStart(event) {
 }
 
 function handleTouchMove(event, camera) {
-  const deltaY = startY - event.touches[0].clientY; // calculate difference between start and current Y position
-  const movementSpeed = 2; // adjust this value for desired speed
+  const deltaY = startY - event.touches[0].clientY;
+  const movementSpeed = 2;
   camera.position.z += deltaY * movementSpeed;
-  startY = event.touches[0].clientY; // update the start position
+  startY = event.touches[0].clientY;
 }
 
 function handleTouchEnd(event) {
