@@ -11,7 +11,7 @@ let CAMERA_PARAMETERS = {
 };
 
 const EARTH_PARAMETERS = {
-  properties: { radius: 80, widthSegments: 32, heightSegments: 32 },
+  properties: { radius: 63.71, widthSegments: 32, heightSegments: 32 },
   position: { x: 0, y: 0, z: 0 },
   rotation: { x: 0, y: Math.PI / (60 * 24 * 2), z: 0 },
   texturePath: {
@@ -72,49 +72,49 @@ const textData = [
   {
     year: 1950,
     info: "Post-war industrialization begins\nto significantly increase carbon dioxide levels.",
-    position: new THREE.Vector3(-5, 1, 0),
+    position: new THREE.Vector3(-7, 0, 100),
     rotation: 0,
   },
   {
     year: 1960,
     info: "Rapid deforestation and urbanization\nfurther escalate greenhouse gas emissions.",
-    position: new THREE.Vector3(-5, 1, 500),
+    position: new THREE.Vector3(-7, 0, 200),
     rotation: 0,
   },
   {
     year: 1970,
     info: "The Clean Air Act is passed in the USA, but global\nemissions continue to rise.",
-    position: new THREE.Vector3(15, 1, 1000),
+    position: new THREE.Vector3(-7, 0, 300),
     rotation: 0,
   },
   {
     year: 1980,
     info: "Scientists reach consensus on\nthe reality of climate change, but political action is slow.",
-    position: new THREE.Vector3(15, 1, 1500),
+    position: new THREE.Vector3(-7, 0, 400),
     rotation: 0,
   },
   {
     year: 1990,
     info: "The IPCC is formed but struggles\nto influence global climate policy.",
-    position: new THREE.Vector3(-5, 1, 2000),
+    position: new THREE.Vector3(-7, 0, 500),
     rotation: 0,
   },
   {
     year: 2000,
     info: "Record high temperatures and extreme weather events\nbecome the new normal.",
-    position: new THREE.Vector3(-5, 1, 2500),
+    position: new THREE.Vector3(-7, 1, 2500),
     rotation: 0,
   },
   {
     year: 2010,
     info: "Despite the Paris Agreement, countries fall short of\ntheir commitments to reduce emissions.",
-    position: new THREE.Vector3(15, 1, 2600),
+    position: new THREE.Vector3(-7, 1, 2600),
     rotation: 0,
   },
   {
     year: 2023,
     info: "The world witnesses unprecedented climate disasters,\nas global warming exceeds the 1.5 degrees Celsius threshold.",
-    position: new THREE.Vector3(15, 1, 2700),
+    position: new THREE.Vector3(-7, 1, 2700),
     rotation: 0,
   },
   {
@@ -346,8 +346,9 @@ function onWindowResize(camera, renderer) {
 
 function handleScroll(event, camera) {
   const zoomSpeed = 0.1;
-  const deltaY = event.deltaY;
-  camera.position.z += deltaY * zoomSpeed;
+  const deltaY = -event.deltaY;
+  const newZ = camera.position.z + deltaY * zoomSpeed;
+  camera.position.z = Math.min(Math.max(newZ, 0), 500);
 }
 
 let startY;
@@ -358,13 +359,10 @@ function handleTouchStart(event) {
 
 function handleTouchMove(event, camera) {
   const deltaY = startY - event.touches[0].clientY;
-  const movementSpeed = 2;
-  camera.position.z += deltaY * movementSpeed;
+  const zoomSpeed = 2;
+  const newZ = camera.position.z + deltaY * zoomSpeed;
+  camera.position.z = Math.min(Math.max(newZ, 0), 500);
   startY = event.touches[0].clientY;
-}
-
-function handleTouchEnd(event) {
-  return;
 }
 
 function animate(renderer, scene, camera) {
@@ -403,7 +401,6 @@ async function main() {
   window.addEventListener("touchmove", (event) =>
     handleTouchMove(event, camera)
   );
-  window.addEventListener("touchend", (event) => handleTouchEnd(event, camera));
 
   animate(renderer, scene, camera);
 }
