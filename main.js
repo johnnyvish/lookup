@@ -6,8 +6,8 @@ import "./style.css";
 let CAMERA_PARAMETERS = {
   fov: 45,
   near: 10,
-  far: 2000,
-  position: { x: 0, y: 0, z: 500 },
+  far: 50000,
+  position: { x: 0, y: 0, z: 10000 },
 };
 
 const EARTH_PARAMETERS = {
@@ -25,7 +25,7 @@ const EARTH_PARAMETERS = {
 const STARS_PARAMETERS = {
   count: 5000,
   color: 0xffffff,
-  radius: 1000,
+  radius: 10000,
 };
 
 const TEXT_PARAMETERS = {
@@ -276,7 +276,7 @@ function createStars(scene) {
 
   const starsMaterial = new THREE.PointsMaterial({
     color: STARS_PARAMETERS.color,
-    size: 2,
+    size: 20,
     sizeAttenuation: true,
   });
 
@@ -347,7 +347,7 @@ function handleScroll(event, camera) {
   const zoomSpeed = 0.1;
   const deltaY = -event.deltaY;
   const newZ = camera.position.z + deltaY * zoomSpeed;
-  camera.position.z = Math.min(Math.max(newZ, 0), 500);
+  camera.position.z = newZ;
 }
 
 let startY;
