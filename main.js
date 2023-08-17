@@ -291,7 +291,7 @@ function createStars(scene, loader) {
   const sphereMaterial = new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.BackSide,
-    color: new THREE.Color(0.25, 0.25, 0.25),
+    color: new THREE.Color(0.1, 0.1, 0.1),
   });
 
   const starSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
