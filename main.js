@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+import { createNoise3D } from "simplex-noise";
 import "./style.css";
 
 let CAMERA_PARAMETERS = {
   fov: 45,
   near: 10,
-  far: 50000,
+  far: 21000,
   position: { x: 0, y: 0, z: 10500 },
 };
 
@@ -33,12 +34,12 @@ const TEXT_PARAMETERS = {
   fontURL: "/fonts/Bebas.json",
   yearText: {
     size: 50,
-    height: 0.5,
+    height: 10,
     curveSegments: 10,
     bevel: {
       enabled: true,
-      thickness: 0.3,
-      size: 0.01,
+      thickness: 2,
+      size: 1,
       offset: 0,
       segments: 5,
     },
@@ -71,74 +72,56 @@ const TEXT_PARAMETERS = {
 const textData = [
   {
     year: 1750,
-    info: "Tonnes of Co2 - 621,371\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 9997.481142241379 },
-    rotation: 0,
-  },
-  {
-    year: 1869,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 9859.609375 },
+    info: "",
+    position: { x: -50, y: -20, z: 9997.481142241379 },
     rotation: 0,
   },
   {
     year: 1884,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 9730.603448275862 },
-    rotation: 0,
-  },
-  {
-    year: 1901,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 9455.818965517241 },
+    info: "",
+    position: { x: -50, y: -20, z: 9730.603448275862 },
     rotation: 0,
   },
   {
     year: 1910,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 9183.728448275862 },
+    info: "",
+    position: { x: -50, y: -20, z: 9183.728448275862 },
     rotation: 0,
   },
   {
     year: 1929,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 8849.676724137931 },
-    rotation: 0,
-  },
-  {
-    year: 1943,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 8642.241379310344 },
+    info: "",
+    position: { x: -50, y: -20, z: 8849.676724137931 },
     rotation: 0,
   },
   {
     year: 1963,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 7233.297413793103 },
+    info: "",
+    position: { x: -50, y: -20, z: 7233.297413793103 },
     rotation: 0,
   },
   {
     year: 1985,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 4523.168103448276 },
+    info: "",
+    position: { x: -50, y: -20, z: 4523.168103448276 },
     rotation: 0,
   },
   {
     year: 2006,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 1759.1594827586214 },
+    info: "",
+    position: { x: -50, y: -20, z: 1759.1594827586214 },
     rotation: 0,
   },
   {
     year: 2012,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 568.4267241379312 },
+    info: "",
+    position: { x: -50, y: -20, z: 568.4267241379312 },
     rotation: 0,
   },
   {
     year: 2021,
-    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
-    position: { x: -75, y: 0, z: 100 },
+    info: "",
+    position: { x: -50, y: -20, z: 100 },
     rotation: 0,
   },
 ];
@@ -299,6 +282,45 @@ function createStars(scene, loader) {
   scene.add(starSphere);
 }
 
+function createAsteroid(scene, loader) {
+  const geometry = new THREE.SphereGeometry(15, 16, 16);
+
+  const noise3D = createNoise3D();
+
+  const vertices = geometry.attributes.position.array;
+  for (let i = 0; i < vertices.length; i += 3) {
+    const x = vertices[i];
+    const y = vertices[i + 1];
+    const z = vertices[i + 2];
+
+    const offset = noise3D(x, y, z);
+
+    vertices[i] += offset * 0.5;
+    vertices[i + 1] += offset * 0.5;
+    vertices[i + 2] += offset * 0.5;
+  }
+
+  geometry.computeVertexNormals();
+
+  const colorTexture = loader.load("/images/asteroid.jpg");
+
+  const material = new THREE.MeshPhongMaterial({
+    map: colorTexture,
+    color: 0xaaaaaa,
+  });
+
+  const asteroid = new THREE.Mesh(geometry, material);
+
+  asteroid.position.set(
+    CAMERA_PARAMETERS.position.x,
+    CAMERA_PARAMETERS.position.y - 20,
+    CAMERA_PARAMETERS.position.z - 100
+  );
+  asteroid.name = "asteroid";
+
+  scene.add(asteroid);
+}
+
 function setupCamera() {
   const camera = new THREE.PerspectiveCamera(
     CAMERA_PARAMETERS.fov,
@@ -357,11 +379,13 @@ function onWindowResize(camera, renderer) {
   resizeRenderer(renderer);
 }
 
-function handleScroll(event, camera) {
+function handleScroll(event, camera, scene) {
+  const asteroid = scene.getObjectByName("asteroid");
   const zoomSpeed = 0.1;
   const deltaY = -event.deltaY;
   const newZ = camera.position.z + deltaY * zoomSpeed;
   camera.position.z = newZ;
+  asteroid.position.z = camera.position.z - 100;
 }
 
 let startY;
@@ -386,6 +410,11 @@ function animate(renderer, scene, camera) {
     earth.rotation.y += EARTH_PARAMETERS.rotation.y;
   }
 
+  const asteroid = scene.getObjectByName("asteroid");
+  if (asteroid) {
+    asteroid.rotation.x -= 0.01;
+  }
+
   updateTextOpacity(camera, scene);
 
   renderer.render(scene, camera);
@@ -398,6 +427,7 @@ async function main() {
   createEarth(scene, loader);
   createStars(scene, loader);
   createText(scene);
+  createAsteroid(scene, loader);
   setupLighting(scene);
 
   const camera = setupCamera();
@@ -409,7 +439,9 @@ async function main() {
     false
   );
 
-  window.addEventListener("wheel", (event) => handleScroll(event, camera));
+  window.addEventListener("wheel", (event) =>
+    handleScroll(event, camera, scene)
+  );
   window.addEventListener("touchstart", (event) =>
     handleTouchStart(event, camera)
   );
