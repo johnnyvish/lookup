@@ -360,7 +360,7 @@ function handleTouchMove(event, camera) {
   const deltaY = startY - event.touches[0].clientY;
   const zoomSpeed = 2;
   const newZ = camera.position.z + deltaY * zoomSpeed;
-  camera.position.z = Math.min(Math.max(newZ, 0), 500);
+  camera.position.z = newZ;
   startY = event.touches[0].clientY;
 }
 
