@@ -7,7 +7,7 @@ let CAMERA_PARAMETERS = {
   fov: 45,
   near: 10,
   far: 50000,
-  position: { x: 0, y: 0, z: 10000 },
+  position: { x: 0, y: 0, z: 10500 },
 };
 
 const EARTH_PARAMETERS = {
@@ -23,16 +23,16 @@ const EARTH_PARAMETERS = {
 };
 
 const STARS_PARAMETERS = {
-  count: 5000,
-  color: 0xffffff,
   radius: 10000,
+  widthSegments: 16,
+  heightSegments: 16,
 };
 
 const TEXT_PARAMETERS = {
   visibilityThreshold: 100,
   fontURL: "/fonts/Bebas.json",
   yearText: {
-    size: 3,
+    size: 50,
     height: 0.5,
     curveSegments: 10,
     bevel: {
@@ -48,13 +48,13 @@ const TEXT_PARAMETERS = {
       opacity: 1,
     },
     positionOffset: {
-      x: 0.5,
-      y: 2,
+      x: -10,
+      y: 20,
       z: 0,
     },
   },
   infoText: {
-    size: 1,
+    size: 10,
     height: 0,
     curveSegments: 10,
     bevel: {
@@ -70,51 +70,75 @@ const TEXT_PARAMETERS = {
 
 const textData = [
   {
-    year: 1950,
-    info: "Post-war industrialization begins\nto significantly increase carbon dioxide levels.",
-    position: new THREE.Vector3(-7, 0, 100),
+    year: 1750,
+    info: "Tonnes of Co2 - 621,371\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 9997.481142241379 },
     rotation: 0,
   },
   {
-    year: 1960,
-    info: "Rapid deforestation and urbanization\nfurther escalate greenhouse gas emissions.",
-    position: new THREE.Vector3(-7, 0, 150),
+    year: 1869,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 9859.609375 },
     rotation: 0,
   },
   {
-    year: 1970,
-    info: "The Clean Air Act is passed in the USA, but global\nemissions continue to rise.",
-    position: new THREE.Vector3(-7, 0, 200),
+    year: 1884,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 9730.603448275862 },
     rotation: 0,
   },
   {
-    year: 1980,
-    info: "Scientists reach consensus on\nthe reality of climate change, but political action is slow.",
-    position: new THREE.Vector3(-7, 0, 250),
+    year: 1901,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 9455.818965517241 },
     rotation: 0,
   },
   {
-    year: 1990,
-    info: "The IPCC is formed but struggles\nto influence global climate policy.",
-    position: new THREE.Vector3(-7, 0, 300),
+    year: 1910,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 9183.728448275862 },
     rotation: 0,
   },
   {
-    year: 2000,
-    info: "Record high temperatures and extreme weather events\nbecome the new normal.",
-    position: new THREE.Vector3(-7, 0, 350),
+    year: 1929,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 8849.676724137931 },
     rotation: 0,
   },
   {
-    year: 2010,
-    info: "Despite the Paris Agreement, countries fall short of\ntheir commitments to reduce emissions.",
-    position: new THREE.Vector3(-7, 0, 400),
+    year: 1943,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 8642.241379310344 },
     rotation: 0,
   },
   {
-    year: 2023,
-    info: "The world witnesses unprecedented climate disasters,\nas global warming exceeds the 1.5 degrees Celsius threshold.",
-    position: new THREE.Vector3(-7, 0, 450),
+    year: 1963,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 7233.297413793103 },
+    rotation: 0,
+  },
+  {
+    year: 1985,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 4523.168103448276 },
+    rotation: 0,
+  },
+  {
+    year: 2006,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 1759.1594827586214 },
+    rotation: 0,
+  },
+  {
+    year: 2012,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 568.4267241379312 },
+    rotation: 0,
+  },
+  {
+    year: 2021,
+    info: "Tonnes of Co2 - 75 million\nMiles from Earth - 10 million",
+    position: { x: -75, y: 0, z: 100 },
     rotation: 0,
   },
 ];
@@ -186,7 +210,7 @@ function updateTextOpacity(camera, scene) {
     const infoText = scene.getObjectByName(`infoText_${year}`);
     const distance = camera.position.z - yearText.position.z;
 
-    const opacityThreshold = 50;
+    const opacityThreshold = 500;
     const opacity = 1 - Math.min(Math.abs(distance) / opacityThreshold, 1);
 
     yearText.material.opacity = opacity;
@@ -254,35 +278,25 @@ function createEarth(scene, loader) {
   return earthGroup;
 }
 
-function createStars(scene) {
-  const vertices = [];
-
-  for (let i = 0; i < STARS_PARAMETERS.count; i++) {
-    const theta = 2 * Math.PI * Math.random();
-    const phi = Math.acos(2 * Math.random() - 1);
-
-    const x = STARS_PARAMETERS.radius * Math.sin(phi) * Math.cos(theta);
-    const y = STARS_PARAMETERS.radius * Math.sin(phi) * Math.sin(theta);
-    const z = STARS_PARAMETERS.radius * Math.cos(phi);
-
-    vertices.push(x, y, z);
-  }
-
-  const starsGeometry = new THREE.BufferGeometry();
-  starsGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(vertices, 3)
+function createStars(scene, loader) {
+  const sphereGeometry = new THREE.SphereGeometry(
+    STARS_PARAMETERS.radius,
+    STARS_PARAMETERS.widthSegments,
+    STARS_PARAMETERS.heightSegments
   );
 
-  const starsMaterial = new THREE.PointsMaterial({
-    color: STARS_PARAMETERS.color,
-    size: 20,
-    sizeAttenuation: true,
+  const texture = loader.load("/images/starfield.jpeg");
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  const sphereMaterial = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.BackSide,
+    color: new THREE.Color(0.25, 0.25, 0.25),
   });
 
-  const stars = new THREE.Points(starsGeometry, starsMaterial);
+  const starSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 
-  scene.add(stars);
+  scene.add(starSphere);
 }
 
 function setupCamera() {
@@ -382,7 +396,7 @@ async function main() {
   const loader = new THREE.TextureLoader();
 
   createEarth(scene, loader);
-  createStars(scene);
+  createStars(scene, loader);
   createText(scene);
   setupLighting(scene);
 
