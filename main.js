@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 import { createNoise3D } from "simplex-noise";
+import WorleyNoise from "worley-noise";
 import alea from "alea";
 import "./style.css";
 
@@ -291,14 +292,13 @@ function createStars(scene, loader) {
 
 function createAsteroid(scene, loader) {
   const geometry = new THREE.SphereGeometry(15, 64, 64);
+  geometry.scale(1, 1.3, 1);
 
-  // Elongate along the Y-axis
-  geometry.scale(1, 1.5, 1); // 1.5 times the original height
-
-  const prng = alea("seed");
+  const prng = alea("69");
 
   const noise3D = createNoise3D(prng);
-  const noise3D_2 = createNoise3D(prng); // Additional noise layer for further irregularities
+  const noise3D_2 = createNoise3D(prng);
+  const noise3D_3 = createNoise3D(prng); // Added another noise function
 
   const vertices = geometry.attributes.position.array;
   const normals = geometry.attributes.normal.array;
@@ -312,13 +312,11 @@ function createAsteroid(scene, loader) {
     const ny = normals[i + 1];
     const nz = normals[i + 2];
 
-    // Base noise
-    const offset1 = noise3D(x * 0.1, y * 0.1, z * 0.1);
+    const offset1 = noise3D(x * 0.1, y * 0.1, z * 0.1) * 1.0;
+    const offset2 = noise3D_2(x * 0.05, y * 0.15, z * 0.1) * 0.5; // Reduced amplitude
+    const offset3 = noise3D_3(x * 0.02, y * 0.05, z * 0.02) * 4; // Added another offset with reduced amplitude
 
-    // Additional noise for irregularity
-    const offset2 = noise3D_2(x * 0.05, y * 0.15, z * 0.1) * 0.8;
-
-    const totalOffset = (offset1 + offset2) * 1;
+    const totalOffset = offset1 + offset2 + offset3;
 
     vertices[i] += nx * totalOffset;
     vertices[i + 1] += ny * totalOffset;
@@ -330,7 +328,7 @@ function createAsteroid(scene, loader) {
   const colorTexture = loader.load("/images/asteroid.jpeg");
 
   const material = new THREE.MeshPhongMaterial({
-    map: colorTexture,
+    map: colorTexture, // Uncommented to use the texture
     color: new THREE.Color(0.2, 0.2, 0.2),
   });
 
@@ -439,8 +437,8 @@ function animate(renderer, scene, camera) {
 
   const asteroid = scene.getObjectByName("asteroid");
   if (asteroid) {
-    asteroid.rotation.x -= 0.0001;
-    asteroid.rotation.y -= 0.0005;
+    asteroid.rotation.x -= 0.0005;
+    // asteroid.rotation.y -= 0.0005;
   }
 
   updateTextOpacity(camera, scene);
