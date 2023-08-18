@@ -2,13 +2,14 @@ import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 import { createNoise3D } from "simplex-noise";
+import alea from "alea";
 import "./style.css";
 
 let CAMERA_PARAMETERS = {
   fov: 45,
   near: 10,
-  far: 21000,
-  position: { x: 0, y: 0, z: 10500 },
+  far: 41000,
+  position: { x: 0, y: 0, z: 21000 },
 };
 
 const EARTH_PARAMETERS = {
@@ -24,7 +25,7 @@ const EARTH_PARAMETERS = {
 };
 
 const STARS_PARAMETERS = {
-  radius: 10000,
+  radius: 20000,
   widthSegments: 16,
   heightSegments: 16,
 };
@@ -71,57 +72,63 @@ const TEXT_PARAMETERS = {
 
 const textData = [
   {
-    year: 1750,
+    year: 1800,
     info: "",
-    position: { x: -50, y: -20, z: 9997.481142241379 },
+    position: { x: -50, y: -20, z: 20484.865301724138 },
     rotation: 0,
   },
   {
-    year: 1884,
+    year: 1869,
     info: "",
-    position: { x: -50, y: -20, z: 9730.603448275862 },
+    position: { x: -50, y: -20, z: 20219.21875 },
     rotation: 0,
   },
   {
-    year: 1910,
+    year: 1901,
     info: "",
-    position: { x: -50, y: -20, z: 9183.728448275862 },
+    position: { x: -50, y: -20, z: 19411.637931034482 },
     rotation: 0,
   },
   {
     year: 1929,
     info: "",
-    position: { x: -50, y: -20, z: 8849.676724137931 },
+    position: { x: -50, y: -20, z: 18199.353448275862 },
+    rotation: 0,
+  },
+  {
+    year: 1943,
+    info: "",
+    position: { x: -50, y: -20, z: 17784.48275862069 },
     rotation: 0,
   },
   {
     year: 1963,
     info: "",
-    position: { x: -50, y: -20, z: 7233.297413793103 },
+    position: { x: -50, y: -20, z: 14966.594827586207 },
     rotation: 0,
   },
   {
     year: 1985,
     info: "",
-    position: { x: -50, y: -20, z: 4523.168103448276 },
+    position: { x: -50, y: -20, z: 9546.336206896553 },
     rotation: 0,
   },
   {
     year: 2006,
     info: "",
-    position: { x: -50, y: -20, z: 1759.1594827586214 },
+    position: { x: -50, y: -20, z: 4018.3189655172428 },
     rotation: 0,
   },
   {
     year: 2012,
     info: "",
-    position: { x: -50, y: -20, z: 568.4267241379312 },
+    position: { x: -50, y: -20, z: 1636.8534482758623 },
     rotation: 0,
   },
   {
     year: 2021,
     info: "",
-    position: { x: -50, y: -20, z: 100 },
+    position: { x: -50, y: -20, z: 500 },
     rotation: 0,
   },
 ];
@@ -144,7 +151,7 @@ function createText(scene) {
           bevelSegments: TEXT_PARAMETERS.yearText.bevel.segments,
         });
 
-        const yearTextMaterial = new THREE.MeshBasicMaterial(
+        const yearTextMaterial = new THREE.MeshPhongMaterial(
           TEXT_PARAMETERS.yearText.material
         );
 
@@ -283,30 +290,48 @@ function createStars(scene, loader) {
 }
 
 function createAsteroid(scene, loader) {
-  const geometry = new THREE.SphereGeometry(15, 16, 16);
+  const geometry = new THREE.SphereGeometry(15, 64, 64);
 
-  const noise3D = createNoise3D();
+  // Elongate along the Y-axis
+  geometry.scale(1, 1.5, 1); // 1.5 times the original height
+
+  const prng = alea("seed");
+
+  const noise3D = createNoise3D(prng);
+  const noise3D_2 = createNoise3D(prng); // Additional noise layer for further irregularities
 
   const vertices = geometry.attributes.position.array;
+  const normals = geometry.attributes.normal.array;
+
   for (let i = 0; i < vertices.length; i += 3) {
     const x = vertices[i];
     const y = vertices[i + 1];
     const z = vertices[i + 2];
 
-    const offset = noise3D(x, y, z);
+    const nx = normals[i];
+    const ny = normals[i + 1];
+    const nz = normals[i + 2];
 
-    vertices[i] += offset * 0.5;
-    vertices[i + 1] += offset * 0.5;
-    vertices[i + 2] += offset * 0.5;
+    // Base noise
+    const offset1 = noise3D(x * 0.1, y * 0.1, z * 0.1);
+
+    // Additional noise for irregularity
+    const offset2 = noise3D_2(x * 0.05, y * 0.15, z * 0.1) * 0.8;
+
+    const totalOffset = (offset1 + offset2) * 1;
+
+    vertices[i] += nx * totalOffset;
+    vertices[i + 1] += ny * totalOffset;
+    vertices[i + 2] += nz * totalOffset;
   }
 
   geometry.computeVertexNormals();
 
-  const colorTexture = loader.load("/images/asteroid.jpg");
+  const colorTexture = loader.load("/images/asteroid.jpeg");
 
   const material = new THREE.MeshPhongMaterial({
     map: colorTexture,
-    color: 0xaaaaaa,
+    color: new THREE.Color(0.2, 0.2, 0.2),
   });
 
   const asteroid = new THREE.Mesh(geometry, material);
@@ -317,6 +342,8 @@ function createAsteroid(scene, loader) {
     CAMERA_PARAMETERS.position.z - 100
   );
   asteroid.name = "asteroid";
+
+  asteroid.rotation.z = Math.PI / 3;
 
   scene.add(asteroid);
 }
@@ -412,7 +439,8 @@ function animate(renderer, scene, camera) {
 
   const asteroid = scene.getObjectByName("asteroid");
   if (asteroid) {
-    asteroid.rotation.x -= 0.01;
+    asteroid.rotation.x -= 0.0001;
+    asteroid.rotation.y -= 0.0005;
   }
 
   updateTextOpacity(camera, scene);
