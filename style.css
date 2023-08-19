@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: "dmsans";
+  src: url("/fonts/dmsans.woff2") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "newake";
+  src: url("/fonts/newake.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer components {
+  .font-newake {
+    font-family: "newake", sans-serif;
+  }
+
+  .font-dmsans {
+    font-family: "dmsans", sans-serif;
+  }
+}

@@ -2,230 +2,158 @@ import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
 import { createNoise3D } from "simplex-noise";
-import WorleyNoise from "worley-noise";
 import alea from "alea";
+import { gsap } from "gsap";
 import "./style.css";
-
-let CAMERA_PARAMETERS = {
-  fov: 45,
-  near: 10,
-  far: 41000,
-  position: { x: 0, y: 0, z: 21000 },
-};
-
-const EARTH_PARAMETERS = {
-  properties: { radius: 63.71, widthSegments: 32, heightSegments: 32 },
-  position: { x: 0, y: 0, z: 0 },
-  rotation: { x: 0, y: Math.PI / (60 * 24 * 2), z: 0 },
-  texturePath: {
-    color: "/images/earth.jpg",
-    normal: "/images/earth-normal.jpg",
-    specular: "/images/earth-specular.jpg",
-    cloud: "/images/clouds.jpg",
-  },
-};
-
-const STARS_PARAMETERS = {
-  radius: 20000,
-  widthSegments: 16,
-  heightSegments: 16,
-};
-
-const TEXT_PARAMETERS = {
-  visibilityThreshold: 100,
-  fontURL: "/fonts/Bebas.json",
-  yearText: {
-    size: 50,
-    height: 10,
-    curveSegments: 10,
-    bevel: {
-      enabled: true,
-      thickness: 2,
-      size: 1,
-      offset: 0,
-      segments: 5,
-    },
-    material: {
-      color: "orange",
-      transparent: true,
-      opacity: 1,
-    },
-    positionOffset: {
-      x: -10,
-      y: 20,
-      z: 0,
-    },
-  },
-  infoText: {
-    size: 10,
-    height: 0,
-    curveSegments: 10,
-    bevel: {
-      enabled: false,
-    },
-    material: {
-      color: "white",
-      transparent: true,
-      opacity: 1,
-    },
-  },
-};
 
 const textData = [
   {
     year: 1800,
-    info: "",
     position: { x: -50, y: -20, z: 20484.865301724138 },
     rotation: 0,
   },
   {
     year: 1869,
-    info: "",
     position: { x: -50, y: -20, z: 20219.21875 },
     rotation: 0,
   },
   {
     year: 1901,
-    info: "",
     position: { x: -50, y: -20, z: 19411.637931034482 },
     rotation: 0,
   },
   {
     year: 1929,
-    info: "",
     position: { x: -50, y: -20, z: 18199.353448275862 },
     rotation: 0,
   },
   {
     year: 1943,
-    info: "",
     position: { x: -50, y: -20, z: 17784.48275862069 },
     rotation: 0,
   },
   {
     year: 1963,
-    info: "",
     position: { x: -50, y: -20, z: 14966.594827586207 },
     rotation: 0,
   },
   {
     year: 1985,
-    info: "",
     position: { x: -50, y: -20, z: 9546.336206896553 },
     rotation: 0,
   },
   {
     year: 2006,
-    info: "",
     position: { x: -50, y: -20, z: 4018.3189655172428 },
     rotation: 0,
   },
   {
     year: 2012,
-    info: "",
     position: { x: -50, y: -20, z: 1636.8534482758623 },
     rotation: 0,
   },
   {
     year: 2021,
-    info: "",
     position: { x: -50, y: -20, z: 500 },
     rotation: 0,
   },
 ];
 
-function createText(scene) {
+let started = false;
+
+function createText(scene, string, x, y, z) {
   const loader = new FontLoader();
 
-  const textObjects = textData.map(({ year, info, position, rotation }) => {
-    return new Promise((resolve) => {
-      loader.load(TEXT_PARAMETERS.fontURL, function (font) {
-        const yearTextGeo = new TextGeometry(String(year), {
-          font: font,
-          size: TEXT_PARAMETERS.yearText.size,
-          height: TEXT_PARAMETERS.yearText.height,
-          curveSegments: TEXT_PARAMETERS.yearText.curveSegments,
-          bevelEnabled: TEXT_PARAMETERS.yearText.bevel.enabled,
-          bevelThickness: TEXT_PARAMETERS.yearText.bevel.thickness,
-          bevelSize: TEXT_PARAMETERS.yearText.bevel.size,
-          bevelOffset: TEXT_PARAMETERS.yearText.bevel.offset,
-          bevelSegments: TEXT_PARAMETERS.yearText.bevel.segments,
-        });
-
-        const yearTextMaterial = new THREE.MeshPhongMaterial(
-          TEXT_PARAMETERS.yearText.material
-        );
-
-        const yearText = new THREE.Mesh(yearTextGeo, yearTextMaterial);
-        yearText.position.x =
-          position.x + TEXT_PARAMETERS.yearText.positionOffset.x;
-        yearText.position.y =
-          position.y + TEXT_PARAMETERS.yearText.positionOffset.y;
-        yearText.position.z =
-          position.z + TEXT_PARAMETERS.yearText.positionOffset.z;
-        yearText.rotation.y = rotation;
-        yearText.name = `yearText_${year}`;
-        scene.add(yearText);
-
-        const infoTextGeo = new TextGeometry(info, {
-          font: font,
-          size: TEXT_PARAMETERS.infoText.size,
-          height: TEXT_PARAMETERS.infoText.height,
-          curveSegments: TEXT_PARAMETERS.infoText.curveSegments,
-          bevelEnabled: TEXT_PARAMETERS.infoText.bevel.enabled,
-        });
-
-        const infoTextMaterial = new THREE.MeshBasicMaterial(
-          TEXT_PARAMETERS.infoText.material
-        );
-
-        const infoText = new THREE.Mesh(infoTextGeo, infoTextMaterial);
-        infoText.position.x = position.x;
-        infoText.position.y = position.y;
-        infoText.position.z = position.z;
-        infoText.rotation.y = rotation;
-        infoText.name = `infoText_${year}`;
-        scene.add(infoText);
-
-        resolve({ yearText: yearText, infoText: infoText });
-      });
+  loader.load("/fonts/Bebas.json", function (font) {
+    const textGeometry = new TextGeometry(string, {
+      font: font,
+      size: 25,
+      height: 5,
+      curveSegments: 10,
+      bevelEnabled: true,
+      bevelThickness: 2,
+      bevelSize: 1,
+      bevelOffset: 0,
+      bevelSegments: 5,
     });
-  });
 
-  return Promise.all(textObjects);
+    const textMaterial = new THREE.MeshPhongMaterial({
+      color: "orange",
+      transparent: true,
+      opacity: 0,
+    });
+
+    const text = new THREE.Mesh(textGeometry, textMaterial);
+    text.position.set(x, y, z);
+    scene.add(text);
+  });
+}
+
+function createTexts(scene) {
+  createText(scene, "10 Million Tonnes", -1050, -15, 4700);
+  createText(scene, "50 Million Tonnes", -950, -15, 4400);
+  createText(scene, "100 Million Tonnes", -850, -15, 4000);
+  // createText(scene, "1900", -500, -15, 3000);
+  // createText(scene, "1950", -200, -15, 2000);
+  // createText(scene, "2023", 0, -15, 1000);
 }
 
 function updateTextOpacity(camera, scene) {
-  textData.forEach(({ year }) => {
-    const yearText = scene.getObjectByName(`yearText_${year}`);
-    const infoText = scene.getObjectByName(`infoText_${year}`);
-    const distance = camera.position.z - yearText.position.z;
-
-    const opacityThreshold = 500;
-    const opacity = 1 - Math.min(Math.abs(distance) / opacityThreshold, 1);
-
-    yearText.material.opacity = opacity;
-    infoText.material.opacity = opacity;
-
-    yearText.material.transparent = true;
-    infoText.material.transparent = true;
+  scene.traverse((object) => {
+    if (object instanceof THREE.Mesh && object.material.transparent) {
+      const distance = camera.position.distanceTo(object.position);
+      const maxDistance = 500; // Adjust this value based on your needs
+      const opacity = THREE.MathUtils.clamp(1 - distance / maxDistance, 0, 1);
+      object.material.opacity = opacity;
+    }
   });
+}
+
+function createCurves(scene) {
+  const asteroidPoints = [
+    new THREE.Vector3(-1000, -15, 5000),
+    new THREE.Vector3(250, -15, 1000),
+    new THREE.Vector3(0, -15, 0),
+  ];
+  const asteroidCurve = new THREE.CatmullRomCurve3(asteroidPoints);
+
+  const cameraPoints = [
+    new THREE.Vector3(-1000, 0, 5100),
+    new THREE.Vector3(300, 0, 1200),
+    new THREE.Vector3(0, 0, 0),
+  ];
+  const cameraCurve = new THREE.CatmullRomCurve3(cameraPoints);
+
+  const asteroidGeometry = new THREE.BufferGeometry().setFromPoints(
+    asteroidCurve.getPoints(100)
+  );
+  const asteroidMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  const asteroidLine = new THREE.Line(asteroidGeometry, asteroidMaterial);
+
+  const cameraGeometry = new THREE.BufferGeometry().setFromPoints(
+    cameraCurve.getPoints(100)
+  );
+  const cameraMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+  const cameraLine = new THREE.Line(cameraGeometry, cameraMaterial);
+
+  scene.userData.asteroidCurve = asteroidCurve;
+  scene.userData.cameraCurve = cameraCurve;
+
+  // scene.add(asteroidLine);
+  // scene.add(cameraLine);
 }
 
 function createEarth(scene, loader) {
   const earthGroup = new THREE.Group();
   earthGroup.name = "earth";
 
-  const geometry = new THREE.SphereGeometry(
-    EARTH_PARAMETERS.properties.radius,
-    EARTH_PARAMETERS.properties.widthSegments,
-    EARTH_PARAMETERS.properties.heightSegments
-  );
+  const geometry = new THREE.SphereGeometry(200, 32, 32);
 
-  const colorTexture = loader.load(EARTH_PARAMETERS.texturePath.color);
+  const colorTexture = loader.load("/images/earth.jpg");
+  const normalTexture = loader.load("/images/earth-normal.jpg");
+  const specularTexture = loader.load("/images/earth-specular.jpg");
+
   colorTexture.colorSpace = THREE.SRGBColorSpace;
-  const normalTexture = loader.load(EARTH_PARAMETERS.texturePath.normal);
-  const specularTexture = loader.load(EARTH_PARAMETERS.texturePath.specular);
 
   const material = new THREE.MeshPhongMaterial({
     map: colorTexture,
@@ -238,15 +166,11 @@ function createEarth(scene, loader) {
   earthMesh.name = "earthMesh";
   earthGroup.add(earthMesh);
 
-  const cloudAlphaTexture = loader.load(EARTH_PARAMETERS.texturePath.cloud);
+  const cloudAlphaTexture = loader.load("/images/clouds.jpg");
   cloudAlphaTexture.colorSpace = THREE.SRGBColorSpace;
 
-  const cloudRadius = EARTH_PARAMETERS.properties.radius * 1.02;
-  const cloudGeometry = new THREE.SphereGeometry(
-    cloudRadius,
-    EARTH_PARAMETERS.properties.widthSegments,
-    EARTH_PARAMETERS.properties.heightSegments
-  );
+  const cloudRadius = 200 * 1.015;
+  const cloudGeometry = new THREE.SphereGeometry(cloudRadius, 32, 32);
 
   const cloudMaterial = new THREE.MeshPhongMaterial({
     alphaMap: cloudAlphaTexture,
@@ -258,25 +182,53 @@ function createEarth(scene, loader) {
   clouds.name = "clouds";
   earthGroup.add(clouds);
 
-  earthGroup.position.set(
-    EARTH_PARAMETERS.position.x,
-    EARTH_PARAMETERS.position.y,
-    EARTH_PARAMETERS.position.z
-  );
+  earthGroup.position.set(0, 0, 0);
 
   scene.add(earthGroup);
 
   return earthGroup;
 }
 
-function createStars(scene, loader) {
-  const sphereGeometry = new THREE.SphereGeometry(
-    STARS_PARAMETERS.radius,
-    STARS_PARAMETERS.widthSegments,
-    STARS_PARAMETERS.heightSegments
-  );
+// function createStars(scene, numStars = 10000) {
+//   const starsGeometry = new THREE.BufferGeometry();
+//   const starsMaterial = new THREE.PointsMaterial({
+//     color: 0xffffff,
+//     size: 1,
+//     sizeAttenuation: false,
+//   });
 
-  const texture = loader.load("/images/starfield.jpeg");
+//   const positions = new Float32Array(numStars * 3);
+
+//   for (let i = 0; i < numStars; i++) {
+//     const radius = 7000;
+//     const phi = Math.random() * Math.PI * 2;
+//     const theta = Math.acos(2 * Math.random() - 1);
+
+//     const x = radius * Math.sin(theta) * Math.cos(phi);
+//     const y = radius * Math.sin(theta) * Math.sin(phi);
+//     const z = radius * Math.cos(theta);
+
+//     positions[i * 3] = x;
+//     positions[i * 3 + 1] = y;
+//     positions[i * 3 + 2] = z;
+//   }
+
+//   starsGeometry.setAttribute(
+//     "position",
+//     new THREE.BufferAttribute(positions, 3)
+//   );
+
+//   const starField = new THREE.Points(starsGeometry, starsMaterial);
+//   starField.position.set(0, 0, 0);
+//   starField.name = "stars";
+
+//   scene.add(starField);
+// }
+
+function createStars(scene, loader) {
+  const sphereGeometry = new THREE.SphereGeometry(7000, 4, 4);
+
+  const texture = loader.load("/images/starfield2.jpeg");
   texture.colorSpace = THREE.SRGBColorSpace;
 
   const sphereMaterial = new THREE.MeshBasicMaterial({
@@ -291,14 +243,14 @@ function createStars(scene, loader) {
 }
 
 function createAsteroid(scene, loader) {
-  const geometry = new THREE.SphereGeometry(15, 64, 64);
+  const geometry = new THREE.SphereGeometry(10, 64, 64);
   geometry.scale(1, 1.3, 1);
 
   const prng = alea("69");
 
   const noise3D = createNoise3D(prng);
   const noise3D_2 = createNoise3D(prng);
-  const noise3D_3 = createNoise3D(prng); // Added another noise function
+  const noise3D_3 = createNoise3D(prng);
 
   const vertices = geometry.attributes.position.array;
   const normals = geometry.attributes.normal.array;
@@ -313,8 +265,8 @@ function createAsteroid(scene, loader) {
     const nz = normals[i + 2];
 
     const offset1 = noise3D(x * 0.1, y * 0.1, z * 0.1) * 1.0;
-    const offset2 = noise3D_2(x * 0.05, y * 0.15, z * 0.1) * 0.5; // Reduced amplitude
-    const offset3 = noise3D_3(x * 0.02, y * 0.05, z * 0.02) * 4; // Added another offset with reduced amplitude
+    const offset2 = noise3D_2(x * 0.05, y * 0.15, z * 0.1) * 0.5;
+    const offset3 = noise3D_3(x * 0.02, y * 0.05, z * 0.02) * 4;
 
     const totalOffset = offset1 + offset2 + offset3;
 
@@ -328,17 +280,13 @@ function createAsteroid(scene, loader) {
   const colorTexture = loader.load("/images/asteroid.jpeg");
 
   const material = new THREE.MeshPhongMaterial({
-    map: colorTexture, // Uncommented to use the texture
+    map: colorTexture,
     color: new THREE.Color(0.2, 0.2, 0.2),
   });
 
   const asteroid = new THREE.Mesh(geometry, material);
 
-  asteroid.position.set(
-    CAMERA_PARAMETERS.position.x,
-    CAMERA_PARAMETERS.position.y - 20,
-    CAMERA_PARAMETERS.position.z - 100
-  );
+  asteroid.position.set(-1000, -15, 5000);
   asteroid.name = "asteroid";
 
   asteroid.rotation.z = Math.PI / 3;
@@ -348,23 +296,14 @@ function createAsteroid(scene, loader) {
 
 function setupCamera() {
   const camera = new THREE.PerspectiveCamera(
-    CAMERA_PARAMETERS.fov,
+    45,
     window.innerWidth / window.innerHeight,
-    CAMERA_PARAMETERS.near,
-    CAMERA_PARAMETERS.far
+    5,
+    20_000
   );
 
-  camera.position.set(
-    CAMERA_PARAMETERS.position.x,
-    CAMERA_PARAMETERS.position.y,
-    CAMERA_PARAMETERS.position.z
-  );
-
-  camera.lookAt(
-    EARTH_PARAMETERS.position.x,
-    EARTH_PARAMETERS.position.y,
-    EARTH_PARAMETERS.position.z
-  );
+  camera.position.set(-50, 0, 600);
+  camera.lookAt(0, 0, 0);
 
   return camera;
 }
@@ -404,13 +343,32 @@ function onWindowResize(camera, renderer) {
   resizeRenderer(renderer);
 }
 
+let accumulatedScroll = 0;
+
 function handleScroll(event, camera, scene) {
-  const asteroid = scene.getObjectByName("asteroid");
-  const zoomSpeed = 0.1;
-  const deltaY = -event.deltaY;
-  const newZ = camera.position.z + deltaY * zoomSpeed;
-  camera.position.z = newZ;
-  asteroid.position.z = camera.position.z - 100;
+  if (started) {
+    const asteroid = scene.getObjectByName("asteroid");
+
+    const asteroidCurve = scene.userData.asteroidCurve;
+    const cameraCurve = scene.userData.cameraCurve;
+    const deltaY = event.deltaY;
+
+    if (accumulatedScroll < 0) {
+      accumulatedScroll = 0;
+    }
+
+    accumulatedScroll += deltaY;
+
+    const t = Math.min(Math.max(accumulatedScroll / 15000, 0), 1);
+
+    const pointOnAsteroidCurve = asteroidCurve.getPoint(t);
+    asteroid.position.copy(pointOnAsteroidCurve);
+
+    const pointOnCameraCurve = cameraCurve.getPoint(t);
+    camera.position.copy(pointOnCameraCurve);
+
+    camera.lookAt(0, 0, 0);
+  }
 }
 
 let startY;
@@ -427,21 +385,23 @@ function handleTouchMove(event, camera) {
   startY = event.touches[0].clientY;
 }
 
-function animate(renderer, scene, camera) {
-  requestAnimationFrame(() => animate(renderer, scene, camera));
-
+function updateObjects(scene, camera) {
   const earth = scene.getObjectByName("earth");
   if (earth) {
-    earth.rotation.y += EARTH_PARAMETERS.rotation.y;
+    earth.rotation.y += 0.001;
   }
 
   const asteroid = scene.getObjectByName("asteroid");
   if (asteroid) {
-    asteroid.rotation.x -= 0.0005;
-    // asteroid.rotation.y -= 0.0005;
+    asteroid.rotation.x -= 0.01;
   }
 
   updateTextOpacity(camera, scene);
+}
+
+function animate(renderer, scene, camera) {
+  requestAnimationFrame(() => animate(renderer, scene, camera));
+  updateObjects(scene, camera);
 
   renderer.render(scene, camera);
 }
@@ -452,8 +412,9 @@ async function main() {
 
   createEarth(scene, loader);
   createStars(scene, loader);
-  createText(scene);
+
   createAsteroid(scene, loader);
+  createCurves(scene);
   setupLighting(scene);
 
   const camera = setupCamera();
@@ -474,6 +435,42 @@ async function main() {
   window.addEventListener("touchmove", (event) =>
     handleTouchMove(event, camera)
   );
+
+  document
+    .querySelector('a[href="#"]')
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+
+      const titleScreen = document.getElementById("title-screen");
+      const year = document.getElementById("ui");
+
+      gsap.to(titleScreen, {
+        duration: 1,
+        opacity: 0,
+        onComplete: function () {
+          titleScreen.style.display = "none";
+        },
+      });
+
+      gsap.to(camera.position, {
+        duration: 5,
+        x: -1000,
+        y: 0,
+        z: 5100,
+        onUpdate: function () {
+          camera.lookAt(0, 0, 0);
+        },
+        onComplete: function () {
+          started = true;
+          gsap.to(year, {
+            duration: 1,
+            opacity: 1,
+          });
+
+          createTexts(scene);
+        },
+      });
+    });
 
   animate(renderer, scene, camera);
 }

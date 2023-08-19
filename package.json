@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "alea": "^1.0.1",
+    "gsap": "^3.12.2",
     "simplex-noise": "^4.0.1",
     "three": "^0.155.0",
     "worley-noise": "^2.0.1"

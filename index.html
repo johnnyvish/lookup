@@ -3,12 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <link href="/style.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Look Up</title>
   </head>
-  <body class="h-screen w-screen bg-black overflow-hidden">
+  <body
+    class="h-screen w-screen bg-black overflow-hidden flex flex-col justify-center items-center"
+  >
     <canvas class="webgl justify-center h-full w-full"></canvas>
-    <div id="copyright" class="fixed bottom-3 right-3 text-white text-md z-50">
+    <img src="/images/yellowdot.png" class="absolute h-24 top-4 left-4" />
+    <div
+      id="title-screen"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center z-50 text-white gap-y-4"
+    >
+      <div
+        class="flex flex-wrap justify-center items-center text-9xl font-newake"
+      >
+        <span class="order-1 mr-4">LOOK</span>
+        <span class="order-2">UP</span>
+      </div>
+
+      <a
+        href="#"
+        class="font-dmsans tracking-tighter items-center justify-center w-full px-8 py-4 text-center text-white duration-200 bg-red-500 rounded-full inline-flex hover:bg-yellow-500 focus:outline-none lg:w-auto focus-visible:outline-black text-5xl focus-visible:ring-black"
+      >
+        Explore
+      </a>
+    </div>
+
+    <div id="ui" class="opacity-0">
+      <div
+        id="thermometer"
+        class="absolute right-8 top-12 w-6 h-[44rem] bg-transparent z-50 flex flex-col justify-end items-center"
+      >
+        <!-- Outer Tube -->
+        <div
+          class="w-2/3 h-full bg-gradient-to-b from-gray-300 to-gray-200 rounded-full relative"
+        >
+          <!-- Inner Tube (Mercury) -->
+          <div
+            class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-[40%] bg-gradient-to-t from-red-700 to-red-500 rounded-full"
+          ></div>
+        </div>
+
+        <!-- Bulb -->
+        <div
+          class="h-8 w-8 bg-gradient-to-t from-red-700 to-red-500 rounded-full -mt-2"
+        ></div>
+      </div>
+
+      <h1
+        class="absolute text-[2rem] md:text-[3rem] font-newake text-red-500 right-20 top-[27rem] z-50"
+      >
+        + 0.8° C
+      </h1>
+
+      <h1
+        class="text-[6rem] md:text-[8rem] absolute font-newake text-white right-28 bottom-4 z-50"
+      >
+        1932
+      </h1>
+    </div>
+
+    <div class="fixed bottom-3 right-3 text-white text-md z-50">
       &copy; 2023 Yellow Dot Studios. All Rights Reserved.
     </div>
     <script type="module" src="/main.js"></script>
